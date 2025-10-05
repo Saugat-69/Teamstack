@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="TeamUp - Real-time collaborative notepad with file sharing capabilities">
+  <title>TeamUp - Real-time Collaborative Notepad</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>TeamUp 📝</h1>
+      <p class="subtitle">Real-time collaborative notepad with file sharing</p>
+    </header>
+
+    <main>
+      <section class="controls-section">
+        <h2 class="section-title">Room Configuration</h2>
+        <div class="menu-tabs" role="tablist" aria-label="Room actions">
+          <button id="tabJoin" type="button" class="tab-button active" role="tab" aria-selected="true">Join Room</button>
+          <button id="tabCreate" type="button" class="tab-button" role="tab" aria-selected="false">Create Room</button>
+        </div>
+        <div class="controls" id="controlsPanel">
+          <label for="roomInput">
+            Room Name
+            <input id="roomInput" placeholder="Enter room name" aria-describedby="roomHelp" />
+            <small id="roomHelp">Choose a unique name for your collaboration room</small>
+          </label>
+          
+          <label for="passwordInput">
+            Password
+            <input id="passwordInput" type="password" placeholder="Optional" aria-describedby="passwordHelp" />
+            <small id="passwordHelp">Set a password for private rooms</small>
+          </label>
+          
+          
+          
+          <label for="connectionType">
+            Connection Type
+            <select id="connectionType" aria-describedby="connectionHelp">
+              <option value="internet">Internet</option>
+              <option value="lan">LAN</option>
+            </select>
+            <small id="connectionHelp">Choose your network connection type</small>
+          </label>
+          
+          <button id="joinBtn" type="button" aria-label="Join or create room">
+            <span class="btn-text">Join Room</span>
+            <span class="btn-icon">🚀</span>
+          </button>
+
+          <div class="room-list" id="roomListContainer" aria-label="Available rooms">
+            <h4>Available Rooms</h4>
+            <ul id="roomList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace-section">
+        <div class="main-area">
+          <div class="left-column">
+            <div class="editor-section">
+            <div class="editor-header">
+              <h3>Collaborative Editor</h3>
+              <div class="editor-status">
+                <span class="status-indicator" id="connectionStatus">Connecting...</span>
+              </div>
+            </div>
+            <textarea 
+              id="editor" 
+              placeholder="Start typing your notes here... All changes are synchronized in real-time with your team members! 🚀"
+              aria-label="Collaborative text editor"
+              spellcheck="true"
+            ></textarea>
+            </div>
+          </div>
+
+          <aside class="right-column">
+            <div class="users-panel">
+              <h4>Users in Room</h4>
+              <div class="name-controls">
+                <input id="displayNameInput" placeholder="Set your name" />
+                <button id="setNameBtn" type="button">Save</button>
+              </div>
+              <label class="checkbox-label" style="margin-bottom:8px;">
+                <input type="checkbox" id="rememberToggle" />
+                <span>Remember and auto-rejoin last room</span>
+              </label>
+              <ul id="userList"></ul>
+            </div>
+
+            <div class="file-section">
+              <div class="file-header">
+                <h3>File Sharing</h3>
+                <span class="file-count" id="fileCount">0 files</span>
+              </div>
+              <div class="file-actions-row">
+                <button id="toggleShare" type="button">Share</button>
+                <button id="toggleDownloads" type="button">Downloads</button>
+              </div>
+              
+              <form id="uploadForm" class="upload-form hidden">
+                <div id="dropArea" role="button" tabindex="0" aria-label="Drop files here or click to browse">
+                  <div class="drop-content">
+                    <div class="drop-icon">📂</div>
+                    <p>Drag & drop files here or <span class="browse-link">browse</span></p>
+                    <small>Supports PDF, DOC, images, and more</small>
+                  </div>
+                  <input type="file" id="fileInput" hidden accept="*/*" />
+                </div>
+              </form>
+              
+              <div class="file-list-container hidden" id="downloadsPanel">
+                <h4>Shared Files</h4>
+                <ul id="fileList" aria-label="List of shared files"></ul>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2024 TeamUp. Built with ❤️ for seamless collaboration.</p>
+      <p class="developer-credit">Developed by <strong>saugat_pro</strong></p>
+    </footer>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./js/script.js"></script>
+</body>
+</html>
