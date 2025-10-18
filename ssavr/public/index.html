@@ -8,127 +8,342 @@
   <link rel="stylesheet" href="./css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>TeamUp 📝</h1>
-      <p class="subtitle">Real-time collaborative notepad with file sharing</p>
-    </header>
-
-    <main>
-      <section class="controls-section">
-        <h2 class="section-title">Room Configuration</h2>
-        <div class="menu-tabs" role="tablist" aria-label="Room actions">
-          <button id="tabJoin" type="button" class="tab-button active" role="tab" aria-selected="true">Join Room</button>
-          <button id="tabCreate" type="button" class="tab-button" role="tab" aria-selected="false">Create Room</button>
+  <div class="app-container">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loading-content">
+        <div class="loading-logo">
+          <i class="fas fa-users"></i>
         </div>
-        <div class="controls" id="controlsPanel">
-          <label for="roomInput">
-            Room Name
-            <input id="roomInput" placeholder="Enter room name" aria-describedby="roomHelp" />
-            <small id="roomHelp">Choose a unique name for your collaboration room</small>
-          </label>
-          
-          <label for="passwordInput">
-            Password
-            <input id="passwordInput" type="password" placeholder="Optional" aria-describedby="passwordHelp" />
-            <small id="passwordHelp">Set a password for private rooms</small>
-          </label>
-          
-          
-          
-          <label for="connectionType">
-            Connection Type
-            <select id="connectionType" aria-describedby="connectionHelp">
-              <option value="internet">Internet</option>
-              <option value="lan">LAN</option>
-            </select>
-            <small id="connectionHelp">Choose your network connection type</small>
-          </label>
-          
-          <button id="joinBtn" type="button" aria-label="Join or create room">
-            <span class="btn-text">Join Room</span>
-            <span class="btn-icon">🚀</span>
-          </button>
-
-          <div class="room-list" id="roomListContainer" aria-label="Available rooms">
-            <h4>Available Rooms</h4>
-            <ul id="roomList"></ul>
-          </div>
+        <h2>TeamUp</h2>
+        <div class="loading-spinner">
+          <div class="spinner"></div>
         </div>
-      </section>
+        <p>Connecting to collaboration server...</p>
+      </div>
+    </div>
 
-      <section class="workspace-section">
-        <div class="main-area">
-          <div class="left-column">
-            <div class="editor-section">
-            <div class="editor-header">
-              <h3>Collaborative Editor</h3>
-              <div class="editor-status">
-                <span class="status-indicator" id="connectionStatus">Connecting...</span>
+    <!-- Main App -->
+    <div class="main-app" id="mainApp">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-content">
+          <div class="logo-section">
+            <div class="logo">
+              <div class="logo-icon">
+                <i class="fas fa-users"></i>
               </div>
+              <div class="logo-pulse"></div>
             </div>
-            <textarea 
-              id="editor" 
-              placeholder="Start typing your notes here... All changes are synchronized in real-time with your team members! 🚀"
-              aria-label="Collaborative text editor"
-              spellcheck="true"
-            ></textarea>
+            <div class="brand">
+              <h1>TeamUp</h1>
+              <p class="tagline">Real-time collaborative workspace</p>
             </div>
           </div>
-
-          <aside class="right-column">
-            <div class="users-panel">
-              <h4>Users in Room</h4>
-              <div class="name-controls">
-                <input id="displayNameInput" placeholder="Set your name" />
-                <button id="setNameBtn" type="button">Save</button>
+          <div class="header-actions">
+            <div class="connection-status">
+              <div class="status-indicator" id="connectionStatus">
+                <div class="status-dot"></div>
+                <span>Connecting...</span>
               </div>
-              <label class="checkbox-label" style="margin-bottom:8px;">
-                <input type="checkbox" id="rememberToggle" />
-                <span>Remember and auto-rejoin last room</span>
-              </label>
-              <ul id="userList"></ul>
             </div>
+            <button id="toggleDarkMode" type="button" class="btn-dark-mode" title="Toggle dark mode">
+              <i class="fas fa-moon"></i>
+            </button>
+          </div>
+        </div>
+        <div class="header-gradient"></div>
+      </header>
 
-            <div class="file-section">
-              <div class="file-header">
-                <h3>File Sharing</h3>
-                <span class="file-count" id="fileCount">0 files</span>
-              </div>
-              <div class="file-actions-row">
-                <button id="toggleShare" type="button">Share</button>
-                <button id="toggleDownloads" type="button">Downloads</button>
-              </div>
-              
-              <form id="uploadForm" class="upload-form hidden">
-                <div id="dropArea" role="button" tabindex="0" aria-label="Drop files here or click to browse">
-                  <div class="drop-content">
-                    <div class="drop-icon">📂</div>
-                    <p>Drag & drop files here or <span class="browse-link">browse</span></p>
-                    <small>Supports PDF, DOC, images, and more</small>
-                  </div>
-                  <input type="file" id="fileInput" hidden accept="*/*" />
+      <!-- Main Content -->
+      <main class="app-main">
+        <!-- Room Configuration Panel -->
+        <section class="room-config-section" id="roomConfigSection">
+          <div class="config-container">
+            <div class="config-header">
+              <h2><i class="fas fa-door-open"></i> Room Configuration</h2>
+              <p>Join an existing room or create a new collaboration space</p>
+              <div id="currentRoomDisplay" class="current-room-display" style="display: none;">
+                <div class="room-info">
+                  <i class="fas fa-home"></i>
+                  <span>Currently in: <strong id="currentRoomName">room1</strong></span>
                 </div>
-              </form>
-              
-              <div class="file-list-container hidden" id="downloadsPanel">
-                <h4>Shared Files</h4>
-                <ul id="fileList" aria-label="List of shared files"></ul>
+                <button id="leaveRoomBtn" type="button" class="btn-leave-room">
+                  <i class="fas fa-sign-out-alt"></i>
+                  Leave Room
+                </button>
               </div>
             </div>
-          </aside>
-        </div>
-      </section>
-    </main>
+            
+            <div class="config-layout">
+              <!-- Left Side - Room Form -->
+              <div class="config-form-section">
+                <div class="config-tabs">
+                  <button id="tabJoin" type="button" class="tab-button active" role="tab" aria-selected="true">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Join Room</span>
+                  </button>
+                  <button id="tabCreate" type="button" class="tab-button" role="tab" aria-selected="false">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Create Room</span>
+                  </button>
+                </div>
 
-    <footer class="app-footer">
-      <p>&copy; 2024 TeamUp. Built with ❤️ for seamless collaboration.</p>
-      <p class="developer-credit">Developed by <strong>saugat_pro</strong></p>
-    </footer>
+                <div class="config-form" id="controlsPanel">
+                  <div class="form-group">
+                    <label for="roomInput" class="form-label">
+                      <i class="fas fa-home"></i>
+                      Room Name
+                    </label>
+                    <div class="input-wrapper">
+                      <input id="roomInput" placeholder="Enter room name" aria-describedby="roomHelp" class="form-input" />
+                      <i class="fas fa-home input-icon"></i>
+                    </div>
+                    <small id="roomHelp" class="form-help">Choose a unique name for your collaboration room</small>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="passwordInput" class="form-label">
+                      <i class="fas fa-lock"></i>
+                      Password
+                    </label>
+                    <div class="input-wrapper">
+                      <input id="passwordInput" type="password" placeholder="Optional" aria-describedby="passwordHelp" class="form-input" />
+                      <i class="fas fa-lock input-icon"></i>
+                    </div>
+                    <small id="passwordHelp" class="form-help">Set a password for private rooms</small>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="connectionType" class="form-label">
+                      <i class="fas fa-network-wired"></i>
+                      Connection Type
+                    </label>
+                    <div class="select-wrapper">
+                      <select id="connectionType" aria-describedby="connectionHelp" class="form-select">
+                        <option value="internet">Internet</option>
+                        <option value="lan">LAN</option>
+                      </select>
+                      <i class="fas fa-chevron-down select-icon"></i>
+                    </div>
+                    <small id="connectionHelp" class="form-help">Choose your network connection type</small>
+                  </div>
+                  
+                  <button id="joinBtn" type="button" class="btn-primary" aria-label="Join or create room">
+                    <span class="btn-content">
+                      <i class="fas fa-rocket"></i>
+                      <span class="btn-text">Join Room</span>
+                    </span>
+                    <div class="btn-loading">
+                      <div class="loading-spinner"></div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right Side - Available Rooms -->
+              <div class="room-list-section" id="roomListContainer">
+                <div class="room-list-header">
+                  <h4><i class="fas fa-list"></i> Available Rooms</h4>
+                  <button id="refreshRooms" type="button" class="btn-refresh" title="Refresh rooms">
+                    <i class="fas fa-sync-alt"></i>
+                  </button>
+                </div>
+                <div class="room-list" id="roomList"></div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Workspace Section -->
+        <section class="workspace-section" id="workspaceSection">
+          <div class="workspace-container">
+            <!-- Main Editor Area -->
+            <div class="editor-panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <i class="fas fa-edit"></i>
+                  <h3>Collaborative Editor</h3>
+                </div>
+                <div class="panel-actions">
+                  <div class="typing-indicator" id="typingIndicator"></div>
+                  <div class="typing-lock-indicator" id="typingLockIndicator"></div>
+                </div>
+              </div>
+              <div class="editor-container">
+                <textarea 
+                  id="editor" 
+                  placeholder="Start typing your notes here... All changes are synchronized in real-time with your team members! 🚀"
+                  aria-label="Collaborative text editor"
+                  spellcheck="true"
+                  class="editor-textarea"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar">
+              <!-- Users Panel -->
+              <div class="sidebar-panel users-panel">
+                <div class="panel-header">
+                  <h4><i class="fas fa-users"></i> Team Members</h4>
+                  <div class="user-count" id="userCount">0</div>
+                </div>
+                <div class="panel-content">
+                  <div class="name-controls">
+                    <div class="input-group">
+                      <input id="displayNameInput" placeholder="Set your name" class="form-input" />
+                      <button id="setNameBtn" type="button" class="btn-secondary">
+                        <i class="fas fa-save"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="remember-toggle">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="rememberToggle" />
+                      <span class="checkmark"></span>
+                      <span class="label-text">Remember and auto-rejoin last room</span>
+                    </label>
+                  </div>
+                  <div class="user-list" id="userList"></div>
+                </div>
+              </div>
+
+              <!-- File Sharing Panel -->
+              <div class="sidebar-panel file-panel">
+                <div class="panel-header">
+                  <h4><i class="fas fa-share-alt"></i> File Sharing</h4>
+                  <div class="file-count" id="fileCount">0 files</div>
+                </div>
+                <div class="panel-content">
+                  <div class="file-actions">
+                    <button id="toggleShare" type="button" class="btn-tab active">
+                      <i class="fas fa-upload"></i>
+                      <span>Share</span>
+                    </button>
+                    <button id="toggleDownloads" type="button" class="btn-tab">
+                      <i class="fas fa-download"></i>
+                      <span>Downloads</span>
+                    </button>
+                  </div>
+                  
+                  <div class="file-content">
+                    <form id="uploadForm" class="upload-form">
+                      <div id="dropArea" role="button" tabindex="0" aria-label="Drop files here or click to browse" class="drop-zone">
+                        <div class="drop-content">
+                          <div class="drop-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                          </div>
+                          <p>Drag & drop files here or <span class="browse-link">browse</span></p>
+                          <small>Supports PDF, DOC, images, and more</small>
+                        </div>
+                        <input type="file" id="fileInput" hidden accept="*/*" />
+                      </div>
+                    </form>
+                    
+                    <div class="file-list-container" id="downloadsPanel">
+                      <div class="file-list" id="fileList"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- Room Activity Section -->
+        <section class="room-activity-section" id="roomActivitySection">
+          <div class="activity-container">
+            <div class="activity-header">
+              <h4><i class="fas fa-bell"></i> Room Activity</h4>
+              <div class="activity-controls">
+                <button id="clearActivity" type="button" class="btn-clear" title="Clear activity">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="activity-content" id="activityContent">
+              <div class="activity-message">Welcome to the room! Activity updates will appear here...</div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="footer-content">
+          <div class="footer-main">
+            <div class="footer-brand">
+              <div class="footer-logo">
+                <i class="fas fa-users"></i>
+                <span>TeamUp</span>
+              </div>
+              <p class="footer-description">Empowering teams with real-time collaboration tools for seamless productivity.</p>
+              <div class="footer-stats">
+                <div class="stat">
+                  <span class="stat-number" id="onlineUsers">0</span>
+                  <span class="stat-label">Online Users</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number" id="activeRooms">0</span>
+                  <span class="stat-label">Active Rooms</span>
+                </div>
+              </div>
+            </div>
+            <div class="footer-links">
+              <div class="footer-column">
+                <h4>Features</h4>
+                <ul>
+                  <li><i class="fas fa-bolt"></i> Real-time editing</li>
+                  <li><i class="fas fa-share-alt"></i> File sharing</li>
+                  <li><i class="fas fa-users-cog"></i> User management</li>
+                  <li><i class="fas fa-door-open"></i> Room management</li>
+                </ul>
+              </div>
+              <div class="footer-column">
+                <h4>Resources</h4>
+                <ul>
+                  <li><i class="fas fa-book"></i> Documentation</li>
+                  <li><i class="fas fa-question-circle"></i> Help Center</li>
+                  <li><i class="fas fa-envelope"></i> Contact Support</li>
+                  <li><i class="fas fa-code"></i> API Reference</li>
+                </ul>
+              </div>
+              <div class="footer-column">
+                <h4>Connect</h4>
+                <div class="social-links">
+                  <a href="#" class="social-link" title="GitHub">
+                    <i class="fab fa-github"></i>
+                  </a>
+                  <a href="#" class="social-link" title="Twitter">
+                    <i class="fab fa-twitter"></i>
+                  </a>
+                  <a href="#" class="social-link" title="Discord">
+                    <i class="fab fa-discord"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-bottom-content">
+            <p>&copy; 2024 TeamUp. Built with ❤️ for productive teams.</p>
+            <div class="footer-bottom-links">
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+              <a href="#">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>

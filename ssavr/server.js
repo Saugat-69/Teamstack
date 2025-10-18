@@ -37,7 +37,7 @@ const upload = multer({ storage });
 app.use(express.static("public"));
 app.use("/uploads", express.static(uploadDir));
 
-let roomData = {}; // Stores: { text, files, password, isPrivate, isLAN, lanIPs, createdAt, connectors:Set, users: Map<socketId,{name,role,muted?:boolean}>, adminSocketId?: string, adminToken?: string }
+let roomData = {}; // Stores: { text, files, password, isPrivate, isLAN, lanIPs, createdAt, connectors:Set, users: Map<socketId,{name,role,muted?:boolean}>, adminSocketId?: string, adminToken?: string, typingLock?: {lockedBy: string, lockedAt: number, isActive: boolean} }
 
 function hydrateRoomFilesFromDisk(room) {
   try {
@@ -154,6 +154,7 @@ const sameSubnet = (ip1, ip2) => {
 };
 
 io.on("connection", (socket) => {
+  console.log(`🔗 New client connected: ${socket.id}`);
   let joinedRoom = "";
 
   // Rooms listing via socket
@@ -307,6 +308,93 @@ io.on("connection", (socket) => {
     socket.to(joinedRoom).emit("typing", user);
   });
 
+  // Typing lock management
+  socket.on("request-typing-lock", () => {
+    if (!joinedRoom) return;
+    const info = roomData[joinedRoom];
+    if (!info || info?.users?.get(socket.id)?.muted) return;
+    
+    const now = Date.now();
+    const lockTimeout = 30000; // 30 seconds timeout
+    
+    // Check if lock is available or expired
+    if (!info.typingLock || (now - info.typingLock.lockedAt) > lockTimeout) {
+      info.typingLock = {
+        lockedBy: socket.id,
+        lockedAt: now,
+        isActive: true
+      };
+      socket.emit("typing-lock-acquired");
+      socket.to(joinedRoom).emit("typing-lock-changed", {
+        lockedBy: socket.id,
+        lockedAt: now,
+        lockedByUser: info.users.get(socket.id)?.name || "Unknown"
+      });
+    } else {
+      socket.emit("typing-lock-denied", {
+        lockedBy: info.typingLock.lockedBy,
+        lockedAt: info.typingLock.lockedAt,
+        lockedByUser: info.users.get(info.typingLock.lockedBy)?.name || "Unknown"
+      });
+    }
+  });
+
+  socket.on("release-typing-lock", () => {
+    if (!joinedRoom) return;
+    const info = roomData[joinedRoom];
+    if (!info || !info.typingLock || info.typingLock.lockedBy !== socket.id) return;
+    
+    delete info.typingLock;
+    socket.to(joinedRoom).emit("typing-lock-released");
+  });
+
+  socket.on("get-typing-lock-status", () => {
+    if (!joinedRoom) return;
+    const info = roomData[joinedRoom];
+    if (!info) return;
+    
+    const now = Date.now();
+    const lockTimeout = 30000; // 30 seconds timeout
+    
+    if (info.typingLock && (now - info.typingLock.lockedAt) <= lockTimeout) {
+      socket.emit("typing-lock-status", {
+        isLocked: true,
+        lockedBy: info.typingLock.lockedBy,
+        lockedAt: info.typingLock.lockedAt,
+        lockedByUser: info.users.get(info.typingLock.lockedBy)?.name || "Unknown",
+        isActive: info.typingLock.isActive || false
+      });
+    } else {
+      // Clean up expired lock
+      if (info.typingLock) {
+        delete info.typingLock;
+      }
+      socket.emit("typing-lock-status", { isLocked: false });
+    }
+  });
+
+  // Handle typing activity signals
+  socket.on("typing-activity", ({ isTyping }) => {
+    if (!joinedRoom) return;
+    const info = roomData[joinedRoom];
+    if (!info || !info.typingLock || info.typingLock.lockedBy !== socket.id) return;
+    
+    info.typingLock.isActive = isTyping;
+    
+    // If user stopped typing, set a timeout to release the lock
+    if (!isTyping) {
+      setTimeout(() => {
+        const currentInfo = roomData[joinedRoom];
+        if (currentInfo && currentInfo.typingLock && 
+            currentInfo.typingLock.lockedBy === socket.id && 
+            !currentInfo.typingLock.isActive) {
+          delete currentInfo.typingLock;
+          io.to(joinedRoom).emit("typing-lock-released");
+        }
+      }, 3000); // 3 seconds delay before releasing
+    }
+  });
+
   socket.on('set-name', ({ name, room }, ack) => {
     const targetRoom = room || joinedRoom;
     if (!targetRoom) { if (ack) ack(false); return; }
@@ -342,21 +430,75 @@ io.on("connection", (socket) => {
       const info = roomData[room];
       if (!info || info.adminSocketId !== socket.id) { if (ack) ack(false); return; }
       if (!info.users || !info.users.has(targetId)) { if (ack) ack(false); return; }
+      
       const targetSocket = io.sockets.sockets.get(targetId);
-      if (targetSocket) targetSocket.leave(room);
-      info.users.delete(targetId);
-      io.to(targetId).emit('kicked', { room });
+      if (targetSocket) {
+        // Remove user from current room
+        targetSocket.leave(room);
+        info.users.delete(targetId);
+        
+        // Auto-join user to "world" room
+        const worldRoom = "world";
+        if (!roomData[worldRoom]) {
+          roomData[worldRoom] = {
+            text: "",
+            files: [],
+            password: null,
+            isPrivate: false,
+            isLAN: false,
+            lanIPs: [],
+            createdAt: Date.now(),
+            connectors: new Set(),
+            users: new Map(),
+            adminSocketId: undefined,
+            adminToken: undefined,
+          };
+        }
+        
+        // Add user to world room
+        targetSocket.join(worldRoom);
+        const userInfo = info.users.get(targetId);
+        if (userInfo) {
+          roomData[worldRoom].users.set(targetId, { ...userInfo, role: 'member' });
+        }
+        
+        // Notify user they were kicked and moved to world room
+        targetSocket.emit('kicked', { room, movedTo: worldRoom });
+        
+        // Send world room data to kicked user
+        targetSocket.emit("text", roomData[worldRoom].text);
+        targetSocket.emit("file-list", roomData[worldRoom].files.map((f) => ({
+          link: `/uploads/${worldRoom}/${f.filename}`,
+          name: f.originalName,
+          filename: f.filename,
+        })));
+        targetSocket.emit('user-list', Array.from(roomData[worldRoom].users.entries()).map(([id,usr]) => ({ id, name: usr.name, role: usr.role, muted: !!usr.muted })));
+      }
+      
+      // Update original room user list
       io.to(room).emit('user-list', Array.from(info.users.entries()).map(([id,usr]) => ({ id, name: usr.name, role: usr.role, muted: !!usr.muted })));
+      
+      // Update world room user list
+      io.to("world").emit('user-list', Array.from(roomData["world"].users.entries()).map(([id,usr]) => ({ id, name: usr.name, role: usr.role, muted: !!usr.muted })));
+      
       if (ack) ack(true);
     } catch (e) { if (ack) ack(false); }
   });
 
   socket.on("disconnect", () => {
+    console.log(`❌ Client disconnected: ${socket.id}`);
     if (!joinedRoom) return;
     const users = roomData[joinedRoom]?.users;
     if (users) {
       users.delete(socket.id);
       if (roomData[joinedRoom].adminSocketId === socket.id) roomData[joinedRoom].adminSocketId = undefined;
+      
+      // Release typing lock if this user had it
+      if (roomData[joinedRoom].typingLock && roomData[joinedRoom].typingLock.lockedBy === socket.id) {
+        delete roomData[joinedRoom].typingLock;
+        io.to(joinedRoom).emit("typing-lock-released");
+      }
+      
       io.to(joinedRoom).emit("user-list", Array.from(users.entries()).map(([id,u]) => ({ id, name: u.name, role: u.role, muted: !!u.muted })));
     }
   });
@@ -451,4 +593,8 @@ app.get("*", (req, res) => {
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`📁 Serving static files from: ${__dirname}/public`);
+  console.log(`🔌 Socket.IO server ready for connections`);
+  console.log(`🌐 Open your browser and go to: http://localhost:${PORT}`);
 });
+
