@@ -1,14 +1,41 @@
 {
-  "name": "realtimenotes",
-  "version": "1.0.0",
+  "name": "teamup-collaborative-app",
+  "version": "2.0.0",
+  "description": "Professional real-time collaborative notepad with file sharing and advanced features",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "prod": "NODE_ENV=production node server.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No linting configured\" && exit 0"
+  },
+  "keywords": [
+    "collaboration",
+    "real-time",
+    "notepad",
+    "file-sharing",
+    "socket.io",
+    "express"
+  ],
+  "author": "TeamUp Development Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.2",
     "express": "^4.21.2",
     "multer": "^1.4.4",
     "socket.io": "^4.8.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/teamup-collaborative-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/teamup-collaborative-app/issues"
+  },
+  "homepage": "https://github.com/your-username/teamup-collaborative-app#readme"
 }

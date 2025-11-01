@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeamUp Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    .status { padding: 1rem; margin: 1rem 0; border-radius: 0.5rem; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+  </style>
+</head>
+<body>
+  <h1>TeamUp Connection Test</h1>
+  <div id="status"></div>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const statusDiv = document.getElementById('status');
+    
+    function addStatus(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+      statusDiv.appendChild(div);
+    }
+    
+    // Test Socket.IO loading
+    if (typeof io === 'undefined') {
+      addStatus('❌ Socket.IO failed to load', 'error');
+    } else {
+      addStatus('✅ Socket.IO loaded successfully', 'success');
+      
+      // Test connection
+      const socket = io();
+      
+      socket.on('connect', () => {
+        addStatus(`✅ Connected to server: ${socket.id}`, 'success');
+      });
+      
+      socket.on('disconnect', () => {
+        addStatus('❌ Disconnected from server', 'error');
+      });
+      
+      socket.on('connect_error', (error) => {
+        addStatus(`❌ Connection error: ${error.message}`, 'error');
+      });
+      
+      addStatus('🔌 Attempting to connect...', 'info');
+    }
+  </script>
+</body>
+</html>

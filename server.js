@@ -1,13 +1,30 @@
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const io = require("socket.io")(http, {
+  cors: {
+    origin: process.env.NODE_ENV === 'production' ? false : "*",
+    methods: ["GET", "POST"]
+  },
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs").promises;
+const fsSync = require("fs");
 
 const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+// Ensure upload directory exists
+(async () => {
+  try {
+    await fs.access(uploadDir);
+  } catch {
+    await fs.mkdir(uploadDir, { recursive: true });
+    console.log(`📁 Created upload directory: ${uploadDir}`);
+  }
+})();
 
 // Upload config
 function resolveRoomFromReq(req) {
@@ -19,59 +36,132 @@ function resolveRoomFromReq(req) {
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: async (req, file, cb) => {
     const room = resolveRoomFromReq(req);
     const roomPath = path.join(uploadDir, room);
     try {
-      if (!fs.existsSync(roomPath)) fs.mkdirSync(roomPath, { recursive: true });
+      await fs.mkdir(roomPath, { recursive: true });
       cb(null, roomPath);
     } catch (e) {
-      console.error("Failed to ensure room folder for", room, e);
+      console.error("❌ Failed to ensure room folder for", room, e);
       cb(null, uploadDir);
     }
   },
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, `${timestamp}-${sanitizedName}`);
+  },
 });
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 1
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow most common file types
+    const allowedMimes = [
+      'text/plain',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'video/mp4',
+      'video/webm',
+      'application/zip',
+      'application/x-rar-compressed'
+    ];
+    
+    if (allowedMimes.includes(file.mimetype) || file.mimetype.startsWith('text/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('File type not allowed'), false);
+    }
+  }
+});
 
-app.use(express.static("public"));
-app.use("/uploads", express.static(uploadDir));
+// Security and performance middleware
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Static file serving with caching
+app.use(express.static("public", {
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
+  etag: true,
+  lastModified: true
+}));
+
+app.use("/uploads", express.static(uploadDir, {
+  maxAge: '7d',
+  etag: true,
+  lastModified: true
+}));
 
 let roomData = {}; // Stores: { text, files, password, isPrivate, isLAN, lanIPs, createdAt, connectors:Set, users: Map<socketId,{name,role,muted?:boolean}>, adminSocketId?: string, adminToken?: string, typingLock?: {lockedBy: string, lockedAt: number, isActive: boolean} }
 
-function hydrateRoomFilesFromDisk(room) {
+async function hydrateRoomFilesFromDisk(room) {
   try {
     const dir = path.join(uploadDir, room);
-    if (!fs.existsSync(dir)) return [];
-    const entries = fs.readdirSync(dir, { withFileTypes: true })
+    
+    try {
+      await fs.access(dir);
+    } catch {
+      return [];
+    }
+    
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const files = entries
       .filter((e) => e.isFile())
       .map((e) => e.name);
-    return entries.map((fname) => {
+    
+    return files.map((fname) => {
       const dashIdx = fname.indexOf("-");
-      const originalName = dashIdx > -1 ? fname.slice(dashIdx + 1) : fname;
-      return { filename: fname, originalName, timestamp: Date.now() };
+      const originalName = dashIdx > -1 ? fname.slice(dashIdx + 1).replace(/_/g, ' ') : fname;
+      
+      // Extract timestamp from filename
+      const timestampMatch = fname.match(/^(\d+)-/);
+      const timestamp = timestampMatch ? parseInt(timestampMatch[1]) : Date.now();
+      
+      return { filename: fname, originalName, timestamp };
     });
   } catch (e) {
-    console.error("Failed to hydrate files for room", room, e);
+    console.error("❌ Failed to hydrate files for room", room, e);
     return [];
   }
 }
 
-function listRooms() {
+async function listRooms() {
   try {
-    const diskRooms = new Set(
-      fs.readdirSync(uploadDir, { withFileTypes: true })
+    const diskRooms = new Set();
+    
+    try {
+      const entries = await fs.readdir(uploadDir, { withFileTypes: true });
+      entries
         .filter((e) => e.isDirectory())
-        .map((e) => e.name)
-    );
+        .forEach((e) => diskRooms.add(e.name));
+    } catch (e) {
+      console.warn("⚠️ Could not read upload directory:", e.message);
+    }
+    
     const memoryRooms = Object.keys(roomData || {});
-    for (const r of memoryRooms) diskRooms.add(r);
-    return Array.from(diskRooms).map((name) => ({
-      name,
-      isPrivate: Boolean(roomData[name]?.isPrivate && roomData[name]?.password),
-    }));
+    memoryRooms.forEach(r => diskRooms.add(r));
+    
+    return Array.from(diskRooms)
+      .filter(name => name && name.length > 0)
+      .map((name) => ({
+        name,
+        isPrivate: Boolean(roomData[name]?.isPrivate && roomData[name]?.password),
+        userCount: roomData[name]?.users?.size || 0,
+        isLAN: Boolean(roomData[name]?.isLAN),
+        createdAt: roomData[name]?.createdAt || Date.now()
+      }))
+      .sort((a, b) => b.userCount - a.userCount || b.createdAt - a.createdAt);
   } catch (e) {
-    console.error("listRooms error", e);
+    console.error("❌ listRooms error", e);
     return [];
   }
 }
@@ -107,38 +197,60 @@ const EXPIRE_PUBLIC = 15 * 60 * 1000; // 15 minutes
 const EXPIRE_PRIVATE = 30 * 60 * 1000; // 30 minutes
 
 // Clean expired files periodically
-setInterval(() => {
+setInterval(async () => {
   const now = Date.now();
+  const cleanupPromises = [];
+  
   for (const room in roomData) {
     if (!roomData[room].files) continue;
+    
+    const expiredFiles = [];
     roomData[room].files = roomData[room].files.filter((file) => {
-      const expired =
-        now - file.timestamp >
+      const expired = now - file.timestamp > 
         (roomData[room].isPrivate ? EXPIRE_PRIVATE : EXPIRE_PUBLIC);
+      
       if (expired) {
-        const filePath = path.join(uploadDir, room, file.filename);
-        fs.unlink(filePath, (err) => {
-          if (err) console.error("Error deleting file:", err);
-        });
+        expiredFiles.push(file);
       }
+      
       return !expired;
     });
+    
+    // Delete expired files
+    expiredFiles.forEach(file => {
+      const filePath = path.join(uploadDir, room, file.filename);
+      cleanupPromises.push(
+        fs.unlink(filePath).catch(err => 
+          console.warn(`⚠️ Could not delete file ${filePath}:`, err.message)
+        )
+      );
+    });
+    
     // Remove empty room folders that were never used by more than one connector in 24h
     try {
       const info = roomData[room];
       if (
         info && info.connectors && info.connectors.size <= 1 &&
-        Date.now() - info.createdAt > NEVER_USED_WINDOW &&
+        now - info.createdAt > NEVER_USED_WINDOW &&
         (info.files?.length || 0) === 0
       ) {
         const dir = path.join(uploadDir, room);
-        if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
-        delete roomData[room];
+        cleanupPromises.push(
+          fs.rmdir(dir, { recursive: true }).then(() => {
+            delete roomData[room];
+            console.log(`🧹 Cleaned up unused room: ${room}`);
+          }).catch(err => 
+            console.warn(`⚠️ Could not remove room directory ${dir}:`, err.message)
+          )
+        );
       }
     } catch (e) {
-      console.error("Cleanup error:", e);
+      console.error("❌ Cleanup error:", e);
     }
   }
+  
+  // Wait for all cleanup operations to complete
+  await Promise.allSettled(cleanupPromises);
 }, CLEAN_INTERVAL);
 
 // Helpers to detect IP and compare subnets
@@ -255,9 +367,10 @@ io.on("connection", (socket) => {
       let guestNumber = 1;
       while (currentNames.has(`Guest ${guestNumber}`)) guestNumber++;
       const userName = `Guest ${guestNumber}`;
-      const isFirstUser = existingUsers.size === 0 && !roomData[room].adminSocketId;
+      // Admin assignment logic: first user to join the room becomes admin
       let role = 'member';
-      if (isFirstUser) {
+      if (!roomData[room].adminSocketId) {
+        // No admin assigned yet, make this user the admin
         role = 'admin';
         roomData[room].adminToken = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
         roomData[room].adminSocketId = socket.id;
@@ -279,7 +392,12 @@ io.on("connection", (socket) => {
 
     // Ensure files list reflects disk on first join after restart
     if (!roomData[room].files || roomData[room].files.length === 0) {
-      roomData[room].files = hydrateRoomFilesFromDisk(room);
+      hydrateRoomFilesFromDisk(room).then(files => {
+        roomData[room].files = files;
+      }).catch(err => {
+        console.error('Failed to hydrate files:', err);
+        roomData[room].files = [];
+      });
     }
 
     socket.emit("text", roomData[room].text);
@@ -537,50 +655,128 @@ setInterval(() => {
   });
 });
 
+// Error handling middleware for multer
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'File too large. Maximum size is 10MB.' 
+      });
+    }
+    if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Too many files. Upload one file at a time.' 
+      });
+    }
+  }
+  
+  if (error.message === 'File type not allowed') {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'File type not allowed. Please upload documents, images, or videos.' 
+    });
+  }
+  
+  console.error('❌ Upload error:', error);
+  res.status(500).json({ success: false, error: 'Upload failed' });
+});
+
 // File upload handler
-app.post("/upload", upload.single("file"), (req, res) => {
-  if (!req.file) return res.json({ success: false });
-  const room = resolveRoomFromReq(req);
-  console.log("Uploaded file to room:", room, req.file.filename);
-  res.json({
-    success: true,
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    room,
-  });
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No file provided' 
+      });
+    }
+    
+    const room = resolveRoomFromReq(req);
+    const fileSize = req.file.size;
+    const fileSizeKB = Math.round(fileSize / 1024);
+    
+    console.log(`📁 Uploaded file to room: ${room}, file: ${req.file.filename} (${fileSizeKB}KB)`);
+    
+    res.json({
+      success: true,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      room,
+      size: fileSize,
+      sizeFormatted: fileSizeKB > 1024 ? `${Math.round(fileSizeKB / 1024)}MB` : `${fileSizeKB}KB`
+    });
+  } catch (error) {
+    console.error('❌ File upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to process file upload' 
+    });
+  }
 });
 
 // List available rooms (memory + disk folders)
-app.get("/rooms", (req, res) => {
+app.get("/rooms", async (req, res) => {
   try {
-    const rooms = listRooms();
-    res.json({ success: true, rooms });
+    const rooms = await listRooms();
+    res.json({ 
+      success: true, 
+      rooms,
+      timestamp: Date.now()
+    });
   } catch (e) {
-    console.error("/rooms error", e);
-    res.status(500).json({ success: false, rooms: [] });
+    console.error("❌ /rooms error", e);
+    res.status(500).json({ 
+      success: false, 
+      rooms: [],
+      error: 'Failed to fetch rooms'
+    });
   }
 });
 
 // Delete a file in a room
-app.delete("/upload", (req, res) => {
-  const room = resolveRoomFromReq(req);
-  const filename = (req.query.filename || "").toString();
-  const filePath = path.join(uploadDir, room, filename);
-  if (!filename) return res.status(400).json({ success: false, error: "filename required" });
+app.delete("/upload", async (req, res) => {
   try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    const room = resolveRoomFromReq(req);
+    const filename = (req.query.filename || "").toString().trim();
+    
+    if (!filename) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Filename is required" 
+      });
+    }
+    
+    // Sanitize filename to prevent directory traversal
+    const sanitizedFilename = path.basename(filename);
+    const filePath = path.join(uploadDir, room, sanitizedFilename);
+    
+    try {
+      await fs.access(filePath);
+      await fs.unlink(filePath);
+      
       if (roomData[room]) {
-        roomData[room].files = (roomData[room].files || []).filter((f) => f.filename !== filename);
-        io.to(room).emit("file-deleted", { filename });
+        roomData[room].files = (roomData[room].files || []).filter(
+          (f) => f.filename !== sanitizedFilename
+        );
+        io.to(room).emit("file-deleted", { filename: sanitizedFilename });
       }
+      
+      console.log(`🗑️ Deleted file: ${sanitizedFilename} from room: ${room}`);
       return res.json({ success: true });
-    } else {
-      return res.status(404).json({ success: false, error: "not_found" });
+    } catch (accessError) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "File not found" 
+      });
     }
   } catch (e) {
-    console.error("Delete error:", e);
-    return res.status(500).json({ success: false });
+    console.error("❌ Delete error:", e);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to delete file" 
+    });
   }
 });
 
@@ -589,12 +785,56 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// Global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  http.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down gracefully');
+  http.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || 'localhost';
+
 http.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
-  console.log(`📁 Serving static files from: ${__dirname}/public`);
+  console.log('🚀 TeamUp Server Started');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`✅ Server running at http://${HOST}:${PORT}`);
+  console.log(`📁 Serving static files from: ${path.resolve(__dirname, 'public')}`);
+  console.log(`📂 Upload directory: ${uploadDir}`);
   console.log(`🔌 Socket.IO server ready for connections`);
-  console.log(`🌐 Open your browser and go to: http://localhost:${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`💾 Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`🌍 Open your browser and go to: http://${HOST}:${PORT}`);
 });
+
+// Log server statistics periodically
+setInterval(() => {
+  const memUsage = process.memoryUsage();
+  const activeRooms = Object.keys(roomData).length;
+  const totalUsers = Object.values(roomData).reduce((sum, room) => sum + (room.users?.size || 0), 0);
+  
+  console.log(`📊 Stats - Rooms: ${activeRooms}, Users: ${totalUsers}, Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+}, 5 * 60 * 1000); // Every 5 minutes
 

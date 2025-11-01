@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="TeamUp - Real-time collaborative notepad with file sharing capabilities">
   <title>TeamUp - Real-time Collaborative Notepad</title>
   <link rel="stylesheet" href="./css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 </head>
+
 <body>
   <div class="app-container">
     <!-- Loading Screen -->
@@ -25,6 +30,66 @@
           <div class="spinner"></div>
         </div>
         <p>Connecting to collaboration server...</p>
+      </div>
+    </div>
+
+    <!-- Theme Selector Panel -->
+    <div class="theme-selector-panel" id="themeSelectorPanel">
+      <div class="theme-panel-header">
+        <h3><i class="fas fa-palette"></i> Choose Your Theme</h3>
+        <button class="theme-close-btn" id="closeThemePanel">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="theme-options">
+        <div class="theme-option" data-theme="purple">
+          <div class="theme-preview purple-theme">
+            <div class="theme-color" style="background: #6f00ff;"></div>
+            <div class="theme-color" style="background: #3b0270;"></div>
+            <div class="theme-color" style="background: #e9b3fb;"></div>
+          </div>
+          <span>Purple</span>
+        </div>
+        <div class="theme-option" data-theme="blue">
+          <div class="theme-preview blue-theme">
+            <div class="theme-color" style="background: #3b82f6;"></div>
+            <div class="theme-color" style="background: #1e40af;"></div>
+            <div class="theme-color" style="background: #bfdbfe;"></div>
+          </div>
+          <span>Blue</span>
+        </div>
+        <div class="theme-option" data-theme="green">
+          <div class="theme-preview green-theme">
+            <div class="theme-color" style="background: #22c55e;"></div>
+            <div class="theme-color" style="background: #16a34a;"></div>
+            <div class="theme-color" style="background: #bbf7d0;"></div>
+          </div>
+          <span>Green</span>
+        </div>
+        <div class="theme-option" data-theme="gray">
+          <div class="theme-preview gray-theme">
+            <div class="theme-color" style="background: #6b7280;"></div>
+            <div class="theme-color" style="background: #374151;"></div>
+            <div class="theme-color" style="background: #d1d5db;"></div>
+          </div>
+          <span>Gray</span>
+        </div>
+        <div class="theme-option" data-theme="orange">
+          <div class="theme-preview orange-theme">
+            <div class="theme-color" style="background: #f97316;"></div>
+            <div class="theme-color" style="background: #ea580c;"></div>
+            <div class="theme-color" style="background: #fed7aa;"></div>
+          </div>
+          <span>Orange</span>
+        </div>
+        <div class="theme-option" data-theme="pink">
+          <div class="theme-preview pink-theme">
+            <div class="theme-color" style="background: #ec4899;"></div>
+            <div class="theme-color" style="background: #be185d;"></div>
+            <div class="theme-color" style="background: #fce7f3;"></div>
+          </div>
+          <span>Pink</span>
+        </div>
       </div>
     </div>
 
@@ -52,6 +117,9 @@
                 <span>Connecting...</span>
               </div>
             </div>
+            <button id="toggleThemeSelector" type="button" class="btn-theme" title="Change theme">
+              <i class="fas fa-palette"></i>
+            </button>
             <button id="toggleDarkMode" type="button" class="btn-dark-mode" title="Toggle dark mode">
               <i class="fas fa-moon"></i>
             </button>
@@ -79,7 +147,7 @@
                 </button>
               </div>
             </div>
-            
+
             <div class="config-layout">
               <!-- Left Side - Room Form -->
               <div class="config-form-section">
@@ -101,24 +169,26 @@
                       Room Name
                     </label>
                     <div class="input-wrapper">
-                      <input id="roomInput" placeholder="Enter room name" aria-describedby="roomHelp" class="form-input" />
+                      <input id="roomInput" placeholder="Enter room name" aria-describedby="roomHelp"
+                        class="form-input" />
                       <i class="fas fa-home input-icon"></i>
                     </div>
                     <small id="roomHelp" class="form-help">Choose a unique name for your collaboration room</small>
                   </div>
-                  
+
                   <div class="form-group">
                     <label for="passwordInput" class="form-label">
                       <i class="fas fa-lock"></i>
                       Password
                     </label>
                     <div class="input-wrapper">
-                      <input id="passwordInput" type="password" placeholder="Optional" aria-describedby="passwordHelp" class="form-input" />
+                      <input id="passwordInput" type="password" placeholder="Optional" aria-describedby="passwordHelp"
+                        class="form-input" />
                       <i class="fas fa-lock input-icon"></i>
                     </div>
                     <small id="passwordHelp" class="form-help">Set a password for private rooms</small>
                   </div>
-                  
+
                   <div class="form-group">
                     <label for="connectionType" class="form-label">
                       <i class="fas fa-network-wired"></i>
@@ -133,7 +203,7 @@
                     </div>
                     <small id="connectionHelp" class="form-help">Choose your network connection type</small>
                   </div>
-                  
+
                   <button id="joinBtn" type="button" class="btn-primary" aria-label="Join or create room">
                     <span class="btn-content">
                       <i class="fas fa-rocket"></i>
@@ -177,13 +247,9 @@
                 </div>
               </div>
               <div class="editor-container">
-                <textarea 
-                  id="editor" 
+                <textarea id="editor"
                   placeholder="Start typing your notes here... All changes are synchronized in real-time with your team members! 🚀"
-                  aria-label="Collaborative text editor"
-                  spellcheck="true"
-                  class="editor-textarea"
-                ></textarea>
+                  aria-label="Collaborative text editor" spellcheck="true" class="editor-textarea"></textarea>
               </div>
             </div>
 
@@ -232,10 +298,11 @@
                       <span>Downloads</span>
                     </button>
                   </div>
-                  
+
                   <div class="file-content">
                     <form id="uploadForm" class="upload-form">
-                      <div id="dropArea" role="button" tabindex="0" aria-label="Drop files here or click to browse" class="drop-zone">
+                      <div id="dropArea" role="button" tabindex="0" aria-label="Drop files here or click to browse"
+                        class="drop-zone">
                         <div class="drop-content">
                           <div class="drop-icon">
                             <i class="fas fa-cloud-upload-alt"></i>
@@ -246,7 +313,7 @@
                         <input type="file" id="fileInput" hidden accept="*/*" />
                       </div>
                     </form>
-                    
+
                     <div class="file-list-container" id="downloadsPanel">
                       <div class="file-list" id="fileList"></div>
                     </div>
@@ -284,7 +351,8 @@
                 <i class="fas fa-users"></i>
                 <span>TeamUp</span>
               </div>
-              <p class="footer-description">Empowering teams with real-time collaboration tools for seamless productivity.</p>
+              <p class="footer-description">Empowering teams with real-time collaboration tools for seamless
+                productivity.</p>
               <div class="footer-stats">
                 <div class="stat">
                   <span class="stat-number" id="onlineUsers">0</span>
@@ -321,11 +389,11 @@
                   <a href="#" class="social-link" title="GitHub">
                     <i class="fab fa-github"></i>
                   </a>
-                  <a href="#" class="social-link" title="Twitter">
-                    <i class="fab fa-twitter"></i>
+                  <a href="https://www.facebook.com/sa.ug.at.103767" class="social-link" title="Facebook">
+                    <i class="fab fa-facebook"></i>
                   </a>
-                  <a href="#" class="social-link" title="Discord">
-                    <i class="fab fa-discord"></i>
+                  <a href="#" class="social-link" title="LinkedIn">
+                    <i class="fab fa-linkedin"></i>
                   </a>
                 </div>
               </div>
@@ -347,6 +415,29 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="./js/script.js"></script>
+  <script>
+    // Debug script loading
+    console.log('📜 Scripts loading...');
+
+    // Check if Socket.IO loaded
+    if (typeof io === 'undefined') {
+      console.error('❌ Socket.IO failed to load');
+      document.addEventListener('DOMContentLoaded', () => {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+          position: fixed; top: 20px; right: 20px; 
+          background: #ef4444; color: white; 
+          padding: 1rem; border-radius: 0.5rem; 
+          z-index: 9999; max-width: 300px;
+        `;
+        errorDiv.textContent = 'Socket.IO failed to load. Please refresh the page.';
+        document.body.appendChild(errorDiv);
+      });
+    } else {
+      console.log('✅ Socket.IO loaded successfully');
+    }
+  </script>
+  <script src="./js/app.js"></script>
 </body>
+
 </html>
