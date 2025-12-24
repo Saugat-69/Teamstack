@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Controls UI Test - TeamUp</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/video-controls.css">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #3b0270 0%, #6f00ff 50%, #e9b3fb 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .test-container {
+      max-width: 1200px;
+      width: 100%;
+      padding: 2rem;
+    }
+
+    .test-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 3rem;
+    }
+
+    .test-header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .test-header p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+    }
+
+    .demo-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 2rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .demo-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .demo-section h2 i {
+      color: #6f00ff;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .demo-card {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .demo-card:hover {
+      border-color: #6f00ff;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .demo-card p {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+    }
+
+    .demo-button {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, #6f00ff, #3b0270);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .demo-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(111, 0, 255, 0.3);
+    }
+
+    .demo-button:active {
+      transform: translateY(0);
+    }
+
+    .status-panel {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .status-value {
+      font-weight: 500;
+      color: #6b7280;
+      padding: 0.25rem 0.75rem;
+      background: white;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .status-value.active {
+      background: #6f00ff;
+      color: white;
+      border-color: #6f00ff;
+    }
+
+    .keyboard-shortcuts {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .keyboard-shortcuts h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 1rem;
+    }
+
+    .shortcut-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+    }
+
+    .shortcut-key {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .shortcut-desc {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .video-placeholder {
+      background: #1f2937;
+      border-radius: 1rem;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>📹 Video Controls UI</h1>
+      <p>Interactive test for TeamUp video and media controls</p>
+    </div>
+
+    <div class="demo-section">
+      <h2><i class="fas fa-video"></i> Video Preview</h2>
+      <div class="video-placeholder">
+        <i class="fas fa-video-slash"></i>
+      </div>
+      
+      <div class="status-panel">
+        <div class="status-item">
+          <span class="status-label">Camera Status</span>
+          <span class="status-value" id="cameraStatus">Off</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Screen Share Status</span>
+          <span class="status-value" id="screenShareStatus">Off</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Current Layout</span>
+          <span class="status-value" id="layoutStatus">Grid</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Video Quality</span>
+          <span class="status-value" id="qualityStatus">Medium</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2><i class="fas fa-gamepad"></i> Control Actions</h2>
+      <div class="demo-grid">
+        <div class="demo-card">
+          <h3>🎥 Camera Control</h3>
+          <p>Toggle camera on/off</p>
+          <button class="demo-button" onclick="testCameraToggle()">
+            <i class="fas fa-video"></i> Toggle Camera
+          </button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>🖥️ Screen Share</h3>
+          <p>Start/stop screen sharing</p>
+          <button class="demo-button" onclick="testScreenShare()">
+            <i class="fas fa-desktop"></i> Toggle Screen Share
+          </button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>📐 Layout Mode</h3>
+          <p>Cycle through layouts</p>
+          <button class="demo-button" onclick="testLayoutCycle()">
+            <i class="fas fa-th"></i> Cycle Layout
+          </button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>⚙️ Video Quality</h3>
+          <p>Change video quality</p>
+          <button class="demo-button" onclick="testQualityChange()">
+            <i class="fas fa-cog"></i> Change Quality
+          </button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>🎛️ Device Settings</h3>
+          <p>Enumerate devices</p>
+          <button class="demo-button" onclick="testDeviceEnumeration()">
+            <i class="fas fa-sliders-h"></i> List Devices
+          </button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>👁️ Toggle Controls</h3>
+          <p>Show/hide control bar</p>
+          <button class="demo-button" onclick="testToggleControls()">
+            <i class="fas fa-eye"></i> Toggle Visibility
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h2>
+      <div class="keyboard-shortcuts">
+        <h3>Available Shortcuts</h3>
+        <div class="shortcut-item">
+          <span class="shortcut-desc">Toggle camera</span>
+          <span class="shortcut-key">V</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-desc">Toggle screen share</span>
+          <span class="shortcut-key">S</span>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-desc">Cycle layout mode</span>
+          <span class="shortcut-key">L</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./js/video-controls-ui.js"></script>
+  
+  <script>
+    // Mock MediaManager for testing
+    class MockMediaManager {
+      constructor() {
+        this.videoEnabled = false;
+        this.screenShareEnabled = false;
+        this.app = {
+          showNotification: (msg, type) => {
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+            alert(`${type.toUpperCase()}: ${msg}`);
+          }
+        };
+      }
+
+      async enableVideo() {
+        console.log('📹 Enabling video...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        this.videoEnabled = true;
+        updateStatus('camera', true);
+        return true;
+      }
+
+      async disableVideo() {
+        console.log('📹 Disabling video...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        this.videoEnabled = false;
+        updateStatus('camera', false);
+        return true;
+      }
+
+      async startScreenShare() {
+        console.log('🖥️ Starting screen share...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        this.screenShareEnabled = true;
+        updateStatus('screenShare', true);
+        return true;
+      }
+
+      async stopScreenShare() {
+        console.log('🖥️ Stopping screen share...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        this.screenShareEnabled = false;
+        updateStatus('screenShare', false);
+        return true;
+      }
+
+      setVideoQuality(quality) {
+        console.log(`⚙️ Setting video quality to: ${quality}`);
+        updateStatus('quality', quality);
+      }
+
+      async switchCamera(deviceId) {
+        console.log(`📹 Switching camera to: ${deviceId}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      async switchMicrophone(deviceId) {
+        console.log(`🎤 Switching microphone to: ${deviceId}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      async switchSpeaker(deviceId) {
+        console.log(`🔊 Switching speaker to: ${deviceId}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+
+    // Initialize
+    let videoControls;
+    let mockMediaManager;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Initializing Video Controls UI Test...');
+      
+      // Create mock media manager
+      mockMediaManager = new MockMediaManager();
+      
+      // Create video controls UI
+      videoControls = new VideoControlsUI(mockMediaManager);
+      videoControls.init();
+      videoControls.show();
+      
+      // Populate devices
+      videoControls.populateDevices();
+      
+      // Listen for layout changes
+      document.addEventListener('videoControls:layoutChange', (e) => {
+        console.log('Layout changed:', e.detail);
+        updateStatus('layout', e.detail);
+      });
+      
+      console.log('✅ Video Controls UI initialized');
+    });
+
+    // Test functions
+    function testCameraToggle() {
+      videoControls.handleCameraToggle();
+    }
+
+    function testScreenShare() {
+      videoControls.handleScreenShareToggle();
+    }
+
+    function testLayoutCycle() {
+      videoControls.cycleLayout();
+    }
+
+    function testQualityChange() {
+      const qualities = ['low', 'medium', 'high', 'hd', 'auto'];
+      const currentIndex = qualities.indexOf(videoControls.currentQuality);
+      const nextQuality = qualities[(currentIndex + 1) % qualities.length];
+      videoControls.handleQualityChange(nextQuality);
+    }
+
+    function testDeviceEnumeration() {
+      videoControls.populateDevices();
+      alert('Devices enumerated! Check the device selector dropdown.');
+    }
+
+    function testToggleControls() {
+      videoControls.toggle();
+    }
+
+    // Update status display
+    function updateStatus(type, value) {
+      const statusElements = {
+        camera: document.getElementById('cameraStatus'),
+        screenShare: document.getElementById('screenShareStatus'),
+        layout: document.getElementById('layoutStatus'),
+        quality: document.getElementById('qualityStatus')
+      };
+
+      const element = statusElements[type];
+      if (!element) return;
+
+      if (type === 'camera') {
+        element.textContent = value ? 'On' : 'Off';
+        element.classList.toggle('active', value);
+      } else if (type === 'screenShare') {
+        element.textContent = value ? 'Active' : 'Off';
+        element.classList.toggle('active', value);
+      } else if (type === 'layout') {
+        const layoutNames = {
+          grid: 'Grid',
+          speaker: 'Speaker',
+          sidebar: 'Sidebar',
+          pip: 'Picture-in-Picture'
+        };
+        element.textContent = layoutNames[value] || value;
+      } else if (type === 'quality') {
+        const qualityNames = {
+          low: 'Low (SD)',
+          medium: 'Medium',
+          high: 'High (HD)',
+          hd: 'Full HD',
+          auto: 'Auto'
+        };
+        element.textContent = qualityNames[value] || value;
+      }
+    }
+  </script>
+</body>
+</html>

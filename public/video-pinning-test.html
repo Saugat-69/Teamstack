@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Pinning Test - TeamUp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0a;
+    }
+    
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .test-header {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .test-header h1 {
+      margin: 0 0 10px 0;
+      color: #111827;
+    }
+    
+    .test-header p {
+      margin: 0;
+      color: #6b7280;
+    }
+    
+    .controls-panel {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .controls-panel h2 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: #111827;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    
+    .test-btn {
+      padding: 10px 20px;
+      background: #6f00ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .test-btn:hover {
+      background: #5a00cc;
+      transform: translateY(-1px);
+    }
+    
+    .test-btn.secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .test-btn.secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .test-btn.danger {
+      background: #ef4444;
+    }
+    
+    .test-btn.danger:hover {
+      background: #dc2626;
+    }
+    
+    .info-panel {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    
+    .info-panel h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #374151;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .info-item strong {
+      color: #111827;
+    }
+    
+    .video-container {
+      background: #1f1f1f;
+      border-radius: 16px;
+      padding: 20px;
+      min-height: 600px;
+    }
+    
+    #videoGrid {
+      width: 100%;
+      height: 600px;
+      background: #0a0a0a;
+      border-radius: 12px;
+    }
+    
+    .layout-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .layout-btn {
+      flex: 1;
+      padding: 10px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+    
+    .layout-btn.active {
+      background: #6f00ff;
+      color: white;
+      border-color: #6f00ff;
+    }
+    
+    .layout-btn:hover:not(.active) {
+      border-color: #6f00ff;
+      color: #6f00ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1><i class="fas fa-thumbtack"></i> Video Pinning Functionality Test</h1>
+      <p>Test the video feed pinning feature with up to 4 simultaneous pins</p>
+    </div>
+    
+    <div class="controls-panel">
+      <h2><i class="fas fa-sliders-h"></i> Test Controls</h2>
+      
+      <div class="button-group">
+        <button class="test-btn" onclick="addTestFeed()">
+          <i class="fas fa-plus"></i> Add Video Feed
+        </button>
+        <button class="test-btn secondary" onclick="removeLastFeed()">
+          <i class="fas fa-minus"></i> Remove Last Feed
+        </button>
+        <button class="test-btn danger" onclick="clearAllFeeds()">
+          <i class="fas fa-trash"></i> Clear All Feeds
+        </button>
+      </div>
+      
+      <h3 style="margin: 15px 0 10px 0; font-size: 14px;">Layout Mode:</h3>
+      <div class="layout-selector">
+        <button class="layout-btn active" onclick="setLayout('grid')">
+          <i class="fas fa-th"></i> Grid
+        </button>
+        <button class="layout-btn" onclick="setLayout('speaker')">
+          <i class="fas fa-user"></i> Speaker
+        </button>
+        <button class="layout-btn" onclick="setLayout('sidebar')">
+          <i class="fas fa-columns"></i> Sidebar
+        </button>
+        <button class="layout-btn" onclick="setLayout('pip')">
+          <i class="fas fa-window-restore"></i> PIP
+        </button>
+      </div>
+      
+      <div class="info-panel">
+        <h3><i class="fas fa-info-circle"></i> Current State</h3>
+        <div class="info-item">
+          <span>Total Feeds:</span>
+          <strong id="feedCount">0</strong>
+        </div>
+        <div class="info-item">
+          <span>Pinned Feeds:</span>
+          <strong id="pinnedCount">0</strong>
+        </div>
+        <div class="info-item">
+          <span>Layout Mode:</span>
+          <strong id="layoutMode">grid</strong>
+        </div>
+        <div class="info-item">
+          <span>Pinned Users:</span>
+          <strong id="pinnedUsers">None</strong>
+        </div>
+      </div>
+    </div>
+    
+    <div class="video-container">
+      <div id="videoGrid"></div>
+    </div>
+  </div>
+
+  <script src="js/video-grid-layout.js"></script>
+  <script>
+    let videoGrid;
+    let feedCounter = 0;
+    let userIds = [];
+    
+    // Initialize video grid
+    function initVideoGrid() {
+      const container = document.getElementById('videoGrid');
+      videoGrid = new VideoGridLayout(container);
+      console.log('✅ Video grid initialized');
+      updateInfo();
+    }
+    
+    // Create a fake video stream
+    function createFakeVideoStream() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw a gradient background
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#6f00ff');
+      gradient.addColorStop(1, '#e9b3fb');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw some text
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`User ${feedCounter + 1}`, canvas.width / 2, canvas.height / 2);
+      
+      // Animate the canvas
+      let hue = Math.random() * 360;
+      setInterval(() => {
+        hue = (hue + 1) % 360;
+        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`User ${feedCounter + 1}`, canvas.width / 2, canvas.height / 2);
+      }, 50);
+      
+      return canvas.captureStream(30);
+    }
+    
+    // Add a test video feed
+    function addTestFeed() {
+      feedCounter++;
+      const userId = `user-${feedCounter}`;
+      const stream = createFakeVideoStream();
+      const metadata = {
+        name: `Test User ${feedCounter}`,
+        isLocal: feedCounter === 1
+      };
+      
+      videoGrid.addVideoFeed(userId, stream, metadata);
+      userIds.push(userId);
+      updateInfo();
+      
+      console.log(`✅ Added video feed: ${userId}`);
+    }
+    
+    // Remove the last feed
+    function removeLastFeed() {
+      if (userIds.length === 0) {
+        alert('No feeds to remove!');
+        return;
+      }
+      
+      const userId = userIds.pop();
+      videoGrid.removeVideoFeed(userId);
+      updateInfo();
+      
+      console.log(`✅ Removed video feed: ${userId}`);
+    }
+    
+    // Clear all feeds
+    function clearAllFeeds() {
+      if (userIds.length === 0) {
+        alert('No feeds to clear!');
+        return;
+      }
+      
+      if (confirm(`Clear all ${userIds.length} video feeds?`)) {
+        videoGrid.clearAll();
+        userIds = [];
+        feedCounter = 0;
+        updateInfo();
+        console.log('✅ Cleared all video feeds');
+      }
+    }
+    
+    // Set layout mode
+    function setLayout(mode) {
+      videoGrid.setLayoutMode(mode);
+      
+      // Update button states
+      document.querySelectorAll('.layout-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.closest('.layout-btn').classList.add('active');
+      
+      updateInfo();
+      console.log(`✅ Layout mode set to: ${mode}`);
+    }
+    
+    // Update info panel
+    function updateInfo() {
+      const feeds = videoGrid.getVideoFeeds();
+      const pinned = videoGrid.getPinnedFeeds();
+      
+      document.getElementById('feedCount').textContent = feeds.size;
+      document.getElementById('pinnedCount').textContent = pinned.size;
+      document.getElementById('layoutMode').textContent = videoGrid.layoutMode;
+      
+      if (pinned.size > 0) {
+        const pinnedNames = Array.from(pinned).map(id => {
+          const feedData = feeds.get(id);
+          return feedData ? feedData.metadata.name : id;
+        }).join(', ');
+        document.getElementById('pinnedUsers').textContent = pinnedNames;
+      } else {
+        document.getElementById('pinnedUsers').textContent = 'None';
+      }
+    }
+    
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initVideoGrid();
+      
+      // Add some initial feeds
+      for (let i = 0; i < 4; i++) {
+        addTestFeed();
+      }
+      
+      console.log('✅ Test page loaded');
+      console.log('📌 Click the pin button on any video feed to pin it');
+      console.log('📌 You can pin up to 4 feeds simultaneously');
+      console.log('📌 Pinned feeds are prioritized in the layout');
+    });
+  </script>
+</body>
+</html>

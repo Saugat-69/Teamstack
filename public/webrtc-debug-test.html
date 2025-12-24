@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC Signaling Debug Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    h2 {
+      color: #666;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      padding: 2px 0;
+    }
+    .log-entry.info { color: #4CAF50; }
+    .log-entry.warn { color: #ff9800; }
+    .log-entry.error { color: #f44336; }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .status.connected {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 WebRTC Signaling Debug Test</h1>
+  
+  <div class="container">
+    <h2>Connection Status</h2>
+    <div id="status" class="status disconnected">
+      Disconnected
+    </div>
+    <div>
+      <strong>Socket ID:</strong> <span id="socketId">Not connected</span>
+    </div>
+    <div>
+      <strong>Room:</strong> <span id="roomName">Not joined</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Controls</h2>
+    <div class="controls">
+      <input type="text" id="roomInput" placeholder="Room name" value="test_room">
+      <button id="joinBtn">Join Room</button>
+      <button id="enableVideoBtn" disabled>Enable Video</button>
+      <button id="clearLogBtn">Clear Log</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Event Log</h2>
+    <div id="log" class="log"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const log = document.getElementById('log');
+    const status = document.getElementById('status');
+    const socketIdEl = document.getElementById('socketId');
+    const roomNameEl = document.getElementById('roomName');
+    const joinBtn = document.getElementById('joinBtn');
+    const enableVideoBtn = document.getElementById('enableVideoBtn');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+    const roomInput = document.getElementById('roomInput');
+    
+    let currentRoom = '';
+    let videoEnabled = false;
+
+    function addLog(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function updateStatus(connected) {
+      if (connected) {
+        status.className = 'status connected';
+        status.textContent = 'Connected';
+      } else {
+        status.className = 'status disconnected';
+        status.textContent = 'Disconnected';
+      }
+    }
+
+    // Socket event listeners
+    socket.on('connect', () => {
+      addLog(`✅ Connected to server`, 'info');
+      addLog(`   Socket ID: ${socket.id}`, 'info');
+      updateStatus(true);
+      socketIdEl.textContent = socket.id;
+    });
+
+    socket.on('disconnect', () => {
+      addLog(`❌ Disconnected from server`, 'error');
+      updateStatus(false);
+      socketIdEl.textContent = 'Not connected';
+      enableVideoBtn.disabled = true;
+    });
+
+    socket.on('text', (data) => {
+      addLog(`📝 Received text update`, 'info');
+      if (!currentRoom) {
+        addLog(`   ✅ Successfully joined room`, 'info');
+        enableVideoBtn.disabled = false;
+      }
+    });
+
+    socket.on('user-video-enabled', (data) => {
+      addLog(`📹 User video enabled: ${data.userId}`, 'info');
+      addLog(`   Name: ${data.name}`, 'info');
+      addLog(`   My socket ID: ${socket.id}`, 'info');
+      addLog(`   Is me: ${data.userId === socket.id}`, 'info');
+    });
+
+    socket.on('media-participants', (data) => {
+      addLog(`📊 Received media participants`, 'info');
+      addLog(`   Participants: ${JSON.stringify(data.participants, null, 2)}`, 'info');
+    });
+
+    // WebRTC signaling listeners
+    socket.on('webrtc-offer', (data) => {
+      addLog(`📥 *** RECEIVED WEBRTC-OFFER EVENT ***`, 'info');
+      addLog(`   From: ${data.fromId}`, 'info');
+      addLog(`   Offer type: ${data.offer?.type}`, 'info');
+      addLog(`   Offer SDP length: ${data.offer?.sdp?.length || 0}`, 'info');
+      addLog(`   My socket ID: ${socket.id}`, 'info');
+    });
+
+    socket.on('webrtc-answer', (data) => {
+      addLog(`📥 *** RECEIVED WEBRTC-ANSWER EVENT ***`, 'info');
+      addLog(`   From: ${data.fromId}`, 'info');
+      addLog(`   Answer type: ${data.answer?.type}`, 'info');
+    });
+
+    socket.on('webrtc-ice-candidate', (data) => {
+      addLog(`🧊 Received ICE candidate from ${data.fromId}`, 'info');
+    });
+
+    // Button handlers
+    joinBtn.addEventListener('click', () => {
+      const room = roomInput.value.trim();
+      if (!room) {
+        addLog(`❌ Please enter a room name`, 'error');
+        return;
+      }
+      
+      addLog(`🚀 Joining room: ${room}`, 'info');
+      socket.emit('join', {
+        room: room,
+        password: '',
+        private: false,
+        adminToken: null
+      });
+      
+      currentRoom = room;
+      roomNameEl.textContent = room;
+    });
+
+    enableVideoBtn.addEventListener('click', async () => {
+      if (!currentRoom) {
+        addLog(`❌ Please join a room first`, 'error');
+        return;
+      }
+
+      if (videoEnabled) {
+        addLog(`⚠️ Video already enabled`, 'warn');
+        return;
+      }
+
+      try {
+        addLog(`📹 Requesting camera access...`, 'info');
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 640, height: 480 },
+          audio: false
+        });
+        
+        addLog(`✅ Camera access granted`, 'info');
+        addLog(`   Video tracks: ${stream.getVideoTracks().length}`, 'info');
+        
+        videoEnabled = true;
+        enableVideoBtn.textContent = 'Video Enabled';
+        enableVideoBtn.disabled = true;
+        
+        // Notify server
+        addLog(`📤 Emitting enable-video event`, 'info');
+        socket.emit('enable-video', { room: currentRoom });
+        
+        // Request media participants
+        addLog(`📤 Requesting media participants`, 'info');
+        socket.emit('get-media-participants', { room: currentRoom });
+        
+      } catch (error) {
+        addLog(`❌ Failed to enable video: ${error.message}`, 'error');
+      }
+    });
+
+    clearLogBtn.addEventListener('click', () => {
+      log.innerHTML = '';
+      addLog(`🧹 Log cleared`, 'info');
+    });
+
+    // Test: Send a test offer after 2 seconds of enabling video
+    socket.on('media-participants', (data) => {
+      const otherUsers = data.participants.filter(p => p.userId !== socket.id && p.videoEnabled);
+      
+      if (otherUsers.length > 0) {
+        addLog(`🔍 Found ${otherUsers.length} other user(s) with video enabled`, 'info');
+        
+        otherUsers.forEach(user => {
+          addLog(`   Testing offer to: ${user.userId}`, 'info');
+          
+          // Create a fake offer for testing
+          setTimeout(() => {
+            addLog(`📤 Sending test webrtc-offer to ${user.userId}`, 'warn');
+            socket.emit('webrtc-offer', {
+              targetId: user.userId,
+              offer: {
+                type: 'offer',
+                sdp: 'test-sdp-data'
+              },
+              room: currentRoom
+            });
+            addLog(`   ✅ Test offer emitted`, 'warn');
+          }, 1000);
+        });
+      }
+    });
+
+    addLog(`🔧 Debug test page loaded`, 'info');
+    addLog(`   Open this page in two browser tabs`, 'info');
+    addLog(`   Join the same room in both tabs`, 'info');
+    addLog(`   Enable video in both tabs`, 'info');
+    addLog(`   Watch for webrtc-offer events`, 'info');
+  </script>
+</body>
+</html>

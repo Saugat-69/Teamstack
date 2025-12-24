@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Handling Test - TeamUp Video & Screen Share</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .test-section {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+      border-left: 4px solid #667eea;
+    }
+
+    .test-section h2 {
+      color: #333;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .test-section h2 i {
+      color: #667eea;
+    }
+
+    .test-description {
+      color: #666;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .test-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .test-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .test-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .test-btn:active {
+      transform: translateY(0);
+    }
+
+    .test-btn.primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .test-btn.success {
+      background: #10b981;
+      color: white;
+    }
+
+    .test-btn.warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .test-btn.danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .test-btn.info {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .test-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .status-panel {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .status-value {
+      color: #6b7280;
+      font-family: 'Courier New', monospace;
+    }
+
+    .status-value.active {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .status-value.error {
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .log-panel {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #1f2937;
+      border-radius: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .log-panel h3 {
+      color: #f3f4f6;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .log-entry {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.25rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .log-entry.info {
+      background: rgba(59, 130, 246, 0.1);
+      color: #93c5fd;
+    }
+
+    .log-entry.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #6ee7b7;
+    }
+
+    .log-entry.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+    }
+
+    .log-entry.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: #fcd34d;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      min-width: 300px;
+      max-width: 500px;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      z-index: 10000;
+      opacity: 0;
+      transform: translateX(400px);
+      transition: all 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification.error {
+      background: #ef4444;
+      color: white;
+    }
+
+    .notification.success {
+      background: #10b981;
+      color: white;
+    }
+
+    .notification.info {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .notification.warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .notification-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .notification-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .notification-message {
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .browser-info {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #eff6ff;
+      border-radius: 0.5rem;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .browser-info h3 {
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .browser-info p {
+      color: #1e3a8a;
+      font-size: 0.9rem;
+      margin: 0.25rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-bug"></i> Error Handling Test Suite</h1>
+    <p class="subtitle">Test camera permissions, screen sharing errors, and browser compatibility detection</p>
+
+    <!-- Camera Error Tests -->
+    <div class="test-section">
+      <h2><i class="fas fa-video"></i> Camera Error Handling</h2>
+      <p class="test-description">
+        Test various camera error scenarios including permission denial, no camera found, and camera in use.
+        These tests verify that the application provides clear, actionable error messages to users.
+      </p>
+      <div class="test-buttons">
+        <button class="test-btn primary" onclick="testCameraPermission()">
+          <i class="fas fa-camera"></i> Test Camera Permission
+        </button>
+        <button class="test-btn info" onclick="testCameraNotFound()">
+          <i class="fas fa-exclamation-triangle"></i> Simulate No Camera
+        </button>
+        <button class="test-btn warning" onclick="testCameraInUse()">
+          <i class="fas fa-lock"></i> Simulate Camera In Use
+        </button>
+        <button class="test-btn danger" onclick="testBrowserSupport()">
+          <i class="fas fa-browser"></i> Test Browser Support
+        </button>
+      </div>
+      <div class="status-panel">
+        <div class="status-item">
+          <span class="status-label">Camera Status:</span>
+          <span class="status-value" id="cameraStatus">Not tested</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Last Error:</span>
+          <span class="status-value" id="cameraError">None</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen Share Error Tests -->
+    <div class="test-section">
+      <h2><i class="fas fa-desktop"></i> Screen Share Error Handling</h2>
+      <p class="test-description">
+        Test screen sharing error scenarios including user cancellation, browser compatibility, and automatic stop when source closes.
+        Verify that errors are handled gracefully with helpful user guidance.
+      </p>
+      <div class="test-buttons">
+        <button class="test-btn primary" onclick="testScreenShare()">
+          <i class="fas fa-share-square"></i> Test Screen Share
+        </button>
+        <button class="test-btn info" onclick="testScreenShareCancellation()">
+          <i class="fas fa-times-circle"></i> Test Cancellation
+        </button>
+        <button class="test-btn warning" onclick="testScreenShareCompatibility()">
+          <i class="fas fa-browser"></i> Test Compatibility
+        </button>
+        <button class="test-btn success" onclick="testAutoStop()">
+          <i class="fas fa-stop-circle"></i> Test Auto-Stop
+        </button>
+      </div>
+      <div class="status-panel">
+        <div class="status-item">
+          <span class="status-label">Screen Share Status:</span>
+          <span class="status-value" id="screenShareStatus">Not tested</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Last Error:</span>
+          <span class="status-value" id="screenShareError">None</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser Information -->
+    <div class="browser-info">
+      <h3><i class="fas fa-info-circle"></i> Browser Information</h3>
+      <p id="browserName">Browser: Detecting...</p>
+      <p id="browserVersion">Version: Detecting...</p>
+      <p id="cameraSupport">Camera Support: Checking...</p>
+      <p id="screenShareSupport">Screen Share Support: Checking...</p>
+    </div>
+
+    <!-- Event Log -->
+    <div class="log-panel">
+      <h3><i class="fas fa-terminal"></i> Event Log</h3>
+      <div id="logContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    // Mock app object for notifications
+    const mockApp = {
+      showNotification: function(message, type) {
+        showNotification(message, type);
+        logEvent(`Notification: ${message}`, type);
+      }
+    };
+
+    // Mock socket object
+    const mockSocket = {
+      emit: function(event, data) {
+        logEvent(`Socket emit: ${event}`, 'info');
+      }
+    };
+
+    // Initialize browser detection
+    function detectBrowser() {
+      const ua = navigator.userAgent.toLowerCase();
+      let browserName = 'Unknown';
+      let version = 'Unknown';
+
+      if (ua.includes('chrome') && !ua.includes('edge')) {
+        browserName = 'Chrome';
+        version = ua.match(/chrome\/([\d.]+)/)?.[1] || 'Unknown';
+      } else if (ua.includes('firefox')) {
+        browserName = 'Firefox';
+        version = ua.match(/firefox\/([\d.]+)/)?.[1] || 'Unknown';
+      } else if (ua.includes('safari') && !ua.includes('chrome')) {
+        browserName = 'Safari';
+        version = ua.match(/version\/([\d.]+)/)?.[1] || 'Unknown';
+      } else if (ua.includes('edge')) {
+        browserName = 'Edge';
+        version = ua.match(/edge\/([\d.]+)/)?.[1] || 'Unknown';
+      }
+
+      document.getElementById('browserName').textContent = `Browser: ${browserName}`;
+      document.getElementById('browserVersion').textContent = `Version: ${version}`;
+
+      // Check camera support
+      const cameraSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      document.getElementById('cameraSupport').textContent = 
+        `Camera Support: ${cameraSupported ? '✅ Supported' : '❌ Not Supported'}`;
+
+      // Check screen share support
+      const screenShareSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+      document.getElementById('screenShareSupport').textContent = 
+        `Screen Share Support: ${screenShareSupported ? '✅ Supported' : '❌ Not Supported'}`;
+
+      logEvent(`Browser detected: ${browserName} ${version}`, 'info');
+    }
+
+    // Camera Tests
+    async function testCameraPermission() {
+      logEvent('Testing camera permission...', 'info');
+      updateStatus('cameraStatus', 'Testing...', 'info');
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        
+        logEvent('✅ Camera permission granted', 'success');
+        updateStatus('cameraStatus', 'Permission Granted', 'success');
+        updateStatus('cameraError', 'None', 'info');
+        
+        showNotification('Camera access granted successfully!', 'success');
+        
+        // Stop the stream
+        stream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        logEvent(`❌ Camera error: ${error.name} - ${error.message}`, 'error');
+        updateStatus('cameraStatus', 'Error', 'error');
+        updateStatus('cameraError', error.name, 'error');
+        
+        handleCameraError(error);
+      }
+    }
+
+    function testCameraNotFound() {
+      logEvent('Simulating no camera found error...', 'warning');
+      const error = new Error('No camera found');
+      error.name = 'NotFoundError';
+      handleCameraError(error);
+    }
+
+    function testCameraInUse() {
+      logEvent('Simulating camera in use error...', 'warning');
+      const error = new Error('Camera is already in use');
+      error.name = 'NotReadableError';
+      handleCameraError(error);
+    }
+
+    function testBrowserSupport() {
+      logEvent('Testing browser support detection...', 'info');
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const error = new Error('getUserMedia not supported');
+        error.name = 'TypeError';
+        handleCameraError(error);
+      } else {
+        showNotification('Browser supports camera access!', 'success');
+        logEvent('✅ Browser supports camera access', 'success');
+      }
+    }
+
+    function handleCameraError(error) {
+      let errorMessage = '';
+      let errorDetails = '';
+
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage = 'Camera permission denied';
+        errorDetails = getCameraPermissionInstructions();
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No camera found';
+        errorDetails = 'Please connect a camera device and try again.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'Camera is already in use';
+        errorDetails = 'Please close other applications using your camera.';
+      } else if (error.name === 'TypeError') {
+        errorMessage = 'Camera not supported';
+        errorDetails = 'Your browser does not support camera access.';
+      } else {
+        errorMessage = 'Failed to access camera';
+        errorDetails = error.message;
+      }
+
+      showNotification(`${errorMessage}. ${errorDetails}`, 'error');
+      updateStatus('cameraStatus', errorMessage, 'error');
+      updateStatus('cameraError', error.name, 'error');
+    }
+
+    function getCameraPermissionInstructions() {
+      const ua = navigator.userAgent.toLowerCase();
+      
+      if (ua.includes('chrome') && !ua.includes('edge')) {
+        return 'Click the camera icon in your browser\'s address bar and select "Allow".';
+      } else if (ua.includes('firefox')) {
+        return 'Click the camera icon in your browser\'s address bar and select "Allow".';
+      } else if (ua.includes('safari')) {
+        return 'Go to Safari > Settings > Websites > Camera and allow access.';
+      } else if (ua.includes('edge')) {
+        return 'Click the camera icon in your browser\'s address bar and select "Allow".';
+      } else {
+        return 'Please allow camera access in your browser settings.';
+      }
+    }
+
+    // Screen Share Tests
+    async function testScreenShare() {
+      logEvent('Testing screen share...', 'info');
+      updateStatus('screenShareStatus', 'Testing...', 'info');
+
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        
+        logEvent('✅ Screen share started', 'success');
+        updateStatus('screenShareStatus', 'Active', 'success');
+        updateStatus('screenShareError', 'None', 'info');
+        
+        showNotification('Screen sharing started successfully!', 'success');
+        
+        // Setup auto-stop handler
+        const track = stream.getVideoTracks()[0];
+        track.onended = () => {
+          logEvent('🖥️ Screen share stopped automatically', 'info');
+          updateStatus('screenShareStatus', 'Stopped', 'info');
+          showNotification('Screen sharing stopped automatically', 'info');
+        };
+        
+        // Stop after 5 seconds for demo
+        setTimeout(() => {
+          stream.getTracks().forEach(track => track.stop());
+        }, 5000);
+      } catch (error) {
+        logEvent(`❌ Screen share error: ${error.name} - ${error.message}`, 'error');
+        updateStatus('screenShareStatus', 'Error', 'error');
+        updateStatus('screenShareError', error.name, 'error');
+        
+        handleScreenShareError(error);
+      }
+    }
+
+    function testScreenShareCancellation() {
+      logEvent('User cancellation is tested by clicking "Cancel" in the screen share dialog', 'info');
+      showNotification('Click "Test Screen Share" and then cancel the dialog to test cancellation handling', 'info');
+    }
+
+    function testScreenShareCompatibility() {
+      logEvent('Testing screen share compatibility...', 'info');
+      
+      const compatibility = checkBrowserCompatibility();
+      
+      if (compatibility.supported) {
+        showNotification('Screen sharing is supported in your browser!', 'success');
+        logEvent('✅ Screen sharing is supported', 'success');
+      } else {
+        showNotification(compatibility.message, 'error');
+        logEvent(`❌ ${compatibility.message}`, 'error');
+      }
+    }
+
+    function testAutoStop() {
+      logEvent('Testing auto-stop functionality...', 'info');
+      showNotification('Start screen sharing, then close the shared window to test auto-stop', 'info');
+    }
+
+    function handleScreenShareError(error) {
+      let errorMessage = '';
+      let shouldNotify = true;
+
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Screen share cancelled';
+        shouldNotify = false;
+        logEvent('ℹ️ User cancelled screen share', 'info');
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = 'Screen sharing is not supported in this browser.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No screen or window available to share.';
+      } else {
+        errorMessage = `Failed to start screen share: ${error.message}`;
+      }
+
+      if (shouldNotify) {
+        showNotification(errorMessage, 'error');
+      }
+      
+      updateStatus('screenShareStatus', shouldNotify ? 'Error' : 'Cancelled', shouldNotify ? 'error' : 'info');
+      updateStatus('screenShareError', error.name, 'error');
+    }
+
+    function checkBrowserCompatibility() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        const ua = navigator.userAgent.toLowerCase();
+        let browserName = 'your browser';
+        let recommendation = '';
+
+        if (ua.includes('chrome')) {
+          browserName = 'Chrome';
+          recommendation = 'Please update to Chrome 72 or later.';
+        } else if (ua.includes('firefox')) {
+          browserName = 'Firefox';
+          recommendation = 'Please update to Firefox 66 or later.';
+        } else if (ua.includes('safari')) {
+          browserName = 'Safari';
+          recommendation = 'Please update to Safari 13 or later.';
+        } else if (ua.includes('edge')) {
+          browserName = 'Edge';
+          recommendation = 'Please update to Edge 79 or later.';
+        } else {
+          recommendation = 'Please use a modern browser.';
+        }
+
+        return {
+          supported: false,
+          message: `Screen sharing is not supported in ${browserName}. ${recommendation}`
+        };
+      }
+
+      return {
+        supported: true,
+        message: 'Screen sharing is supported'
+      };
+    }
+
+    // Utility Functions
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+
+      const icons = {
+        error: 'fas fa-exclamation-circle',
+        success: 'fas fa-check-circle',
+        info: 'fas fa-info-circle',
+        warning: 'fas fa-exclamation-triangle'
+      };
+
+      notification.innerHTML = `
+        <div class="notification-content">
+          <i class="notification-icon ${icons[type] || icons.info}"></i>
+          <span class="notification-message">${message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => notification.classList.add('show'), 100);
+
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }, 5000);
+    }
+
+    function logEvent(message, type = 'info') {
+      const logContainer = document.getElementById('logContainer');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      
+      logContainer.insertBefore(entry, logContainer.firstChild);
+      
+      // Keep only last 50 entries
+      while (logContainer.children.length > 50) {
+        logContainer.removeChild(logContainer.lastChild);
+      }
+    }
+
+    function updateStatus(elementId, value, type = 'info') {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = value;
+        element.className = `status-value ${type}`;
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      detectBrowser();
+      logEvent('Error handling test suite initialized', 'success');
+    });
+  </script>
+</body>
+</html>

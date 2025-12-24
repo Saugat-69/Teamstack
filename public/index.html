@@ -7,6 +7,10 @@
   <meta name="description" content="TeamUp - Real-time collaborative notepad with file sharing capabilities">
   <title>TeamUp - Real-time Collaborative Notepad</title>
   <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/video-controls.css" />
+  <link rel="stylesheet" href="./css/video-feed.css" />
+  <link rel="stylesheet" href="./css/voice-channel.css" />
+  <link rel="stylesheet" href="./css/connection-quality.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -255,6 +259,32 @@
 
             <!-- Sidebar -->
             <aside class="sidebar">
+              <!-- Voice Channel Panel -->
+              <div class="sidebar-panel voice-panel">
+                <div class="panel-header">
+                  <h4><i class="fas fa-comments"></i> Chat</h4>
+                  <div class="voice-status" id="voiceStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                  </div>
+                </div>
+                <div class="panel-content">
+                  <div class="voice-controls">
+                    <button id="btnJoinVoice" class="btn-primary btn-join-voice">
+                      <i class="fas fa-headset"></i>
+                      <span>Join Voice</span>
+                    </button>
+                    <button id="btnLeaveVoice" class="btn-danger btn-leave-voice hidden">
+                      <i class="fas fa-phone-slash"></i>
+                      <span>Leave Voice</span>
+                    </button>
+                  </div>
+                  <div class="voice-users" id="voiceUserList">
+                    <!-- Voice participants will be populated here -->
+                  </div>
+                </div>
+              </div>
+
               <!-- Users Panel -->
               <div class="sidebar-panel users-panel">
                 <div class="panel-header">
@@ -437,6 +467,16 @@
       console.log('✅ Socket.IO loaded successfully');
     }
   </script>
+  <!-- Video Components -->
+  <script src="./js/media-manager.js"></script>
+  <script src="./js/video-grid-layout.js"></script>
+  <script src="./js/video-controls-ui.js"></script>
+  <script src="./js/video-feed-ui.js"></script>
+  <script src="./js/screen-share-manager.js"></script>
+  <script src="./js/quality-controller.js"></script>
+  <script src="./js/connection-quality-monitor.js"></script>
+  <script src="./js/device-selector.js"></script>
+  <!-- Main App -->
   <script src="./js/app.js"></script>
 </body>
 

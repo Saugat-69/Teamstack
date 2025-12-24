@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keyboard Shortcuts & Accessibility Test - TeamUp</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/video-controls.css">
+  <link rel="stylesheet" href="./css/video-feed.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      padding: 2rem;
+      background: #f3f4f6;
+    }
+    
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .test-section {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      border-left: 4px solid var(--primary-600);
+    }
+    
+    .test-section h2 {
+      margin-top: 0;
+      color: var(--primary-600);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .keyboard-shortcuts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .shortcut-key {
+      background: var(--primary-600);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      min-width: 3rem;
+      text-align: center;
+    }
+    
+    .shortcut-description {
+      flex: 1;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .status-indicator.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-indicator.info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .event-log {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+    
+    .event-log-item {
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #374151;
+    }
+    
+    .event-log-item:last-child {
+      border-bottom: none;
+    }
+    
+    .event-time {
+      color: #9ca3af;
+      margin-right: 0.5rem;
+    }
+    
+    .test-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .test-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .test-btn-primary {
+      background: var(--primary-600);
+      color: white;
+    }
+    
+    .test-btn-primary:hover {
+      background: var(--primary-700);
+      transform: translateY(-2px);
+    }
+    
+    .test-btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .test-btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .video-grid-container {
+      min-height: 400px;
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1 style="text-align: center; color: var(--primary-600); margin-bottom: 2rem;">
+      <i class="fas fa-keyboard"></i> Keyboard Shortcuts & Accessibility Test
+    </h1>
+    
+    <!-- Keyboard Shortcuts Section -->
+    <div class="test-section">
+      <h2><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h2>
+      <p>Press the following keys to test keyboard shortcuts (make sure no input field is focused):</p>
+      
+      <div class="keyboard-shortcuts">
+        <div class="shortcut-item">
+          <div class="shortcut-key">V</div>
+          <div class="shortcut-description">Toggle camera on/off</div>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-key">S</div>
+          <div class="shortcut-description">Toggle screen share</div>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-key">L</div>
+          <div class="shortcut-description">Cycle through layout modes</div>
+        </div>
+        <div class="shortcut-item">
+          <div class="shortcut-key">F</div>
+          <div class="shortcut-description">Toggle fullscreen mode</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ARIA Live Regions Section -->
+    <div class="test-section">
+      <h2><i class="fas fa-universal-access"></i> ARIA Live Regions</h2>
+      <p>Screen reader announcements will appear in the event log below when actions are performed.</p>
+      <div class="status-indicator success">
+        <i class="fas fa-check-circle"></i>
+        ARIA live regions are active
+      </div>
+    </div>
+    
+    <!-- Reduced Motion Section -->
+    <div class="test-section">
+      <h2><i class="fas fa-running"></i> Prefers Reduced Motion</h2>
+      <p>Test reduced motion support by enabling "Reduce motion" in your system settings.</p>
+      <div class="status-indicator info" id="reducedMotionStatus">
+        <i class="fas fa-info-circle"></i>
+        <span id="reducedMotionText">Checking...</span>
+      </div>
+    </div>
+    
+    <!-- Event Log Section -->
+    <div class="test-section">
+      <h2><i class="fas fa-list"></i> Event Log</h2>
+      <p>All keyboard shortcuts and accessibility events will be logged here:</p>
+      <div class="event-log" id="eventLog">
+        <div class="event-log-item">
+          <span class="event-time">[Ready]</span>
+          <span>Waiting for keyboard input...</span>
+        </div>
+      </div>
+      <div class="test-controls">
+        <button class="test-btn test-btn-secondary" onclick="clearEventLog()">
+          <i class="fas fa-trash"></i> Clear Log
+        </button>
+      </div>
+    </div>
+    
+    <!-- Video Grid Container -->
+    <div id="videoGridContainer" class="video-grid-container"></div>
+  </div>
+  
+  <!-- Mock Socket.IO -->
+  <script>
+    // Mock Socket.IO for testing
+    window.io = function() {
+      return {
+        on: function() {},
+        emit: function() {},
+        connected: true
+      };
+    };
+  </script>
+  
+  <!-- Video Components -->
+  <script src="./js/video-grid-layout.js"></script>
+  <script src="./js/video-controls-ui.js"></script>
+  
+  <!-- Test Script -->
+  <script>
+    // Event log functionality
+    function logEvent(message, type = 'info') {
+      const eventLog = document.getElementById('eventLog');
+      const time = new Date().toLocaleTimeString();
+      const item = document.createElement('div');
+      item.className = 'event-log-item';
+      item.innerHTML = `<span class="event-time">[${time}]</span><span>${message}</span>`;
+      eventLog.appendChild(item);
+      eventLog.scrollTop = eventLog.scrollHeight;
+    }
+    
+    function clearEventLog() {
+      const eventLog = document.getElementById('eventLog');
+      eventLog.innerHTML = '<div class="event-log-item"><span class="event-time">[Cleared]</span><span>Event log cleared</span></div>';
+    }
+    
+    // Check reduced motion preference
+    function checkReducedMotion() {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const statusText = document.getElementById('reducedMotionText');
+      const statusIndicator = document.getElementById('reducedMotionStatus');
+      
+      if (prefersReducedMotion) {
+        statusText.textContent = 'Reduced motion is ENABLED';
+        statusIndicator.classList.remove('info');
+        statusIndicator.classList.add('success');
+        logEvent('✅ Reduced motion preference detected - animations disabled', 'success');
+      } else {
+        statusText.textContent = 'Reduced motion is DISABLED (animations enabled)';
+        logEvent('ℹ️ Reduced motion not enabled - animations active', 'info');
+      }
+    }
+    
+    // Mock MediaManager for testing
+    class MockMediaManager {
+      constructor() {
+        this.videoEnabled = false;
+        this.screenShareEnabled = false;
+      }
+      
+      async enableVideo() {
+        this.videoEnabled = true;
+        logEvent('📹 Camera enabled (mock)', 'success');
+      }
+      
+      async disableVideo() {
+        this.videoEnabled = false;
+        logEvent('📹 Camera disabled (mock)', 'info');
+      }
+      
+      async startScreenShare() {
+        this.screenShareEnabled = true;
+        logEvent('🖥️ Screen share started (mock)', 'success');
+      }
+      
+      async stopScreenShare() {
+        this.screenShareEnabled = false;
+        logEvent('🖥️ Screen share stopped (mock)', 'info');
+      }
+    }
+    
+    // Initialize components
+    document.addEventListener('DOMContentLoaded', () => {
+      logEvent('🚀 Test page loaded', 'success');
+      checkReducedMotion();
+      
+      // Initialize mock media manager
+      const mockMediaManager = new MockMediaManager();
+      
+      // Initialize video controls
+      const videoControls = new VideoControlsUI(mockMediaManager, document.body);
+      videoControls.init();
+      videoControls.show();
+      
+      logEvent('✅ Video controls initialized', 'success');
+      
+      // Initialize video grid
+      const videoGridContainer = document.getElementById('videoGridContainer');
+      const videoGrid = new VideoGridLayout(videoGridContainer);
+      
+      logEvent('✅ Video grid initialized', 'success');
+      
+      // Listen for layout changes
+      document.addEventListener('videoControls:layoutChange', (e) => {
+        logEvent(`📐 Layout changed to: ${e.detail}`, 'info');
+      });
+      
+      // Monitor ARIA live regions
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'characterData' || mutation.type === 'childList') {
+            const target = mutation.target.nodeType === Node.TEXT_NODE ? mutation.target.parentElement : mutation.target;
+            if (target && target.getAttribute('aria-live')) {
+              const message = target.textContent.trim();
+              if (message) {
+                logEvent(`🔊 Screen reader announcement: "${message}"`, 'success');
+              }
+            }
+          }
+        });
+      });
+      
+      // Observe all ARIA live regions
+      setTimeout(() => {
+        const liveRegions = document.querySelectorAll('[aria-live]');
+        liveRegions.forEach(region => {
+          observer.observe(region, {
+            characterData: true,
+            childList: true,
+            subtree: true
+          });
+          logEvent(`👁️ Monitoring ARIA live region: ${region.id || 'unnamed'}`, 'info');
+        });
+      }, 500);
+      
+      // Log keyboard events
+      document.addEventListener('keydown', (e) => {
+        if (!e.target.matches('input, textarea, select')) {
+          const key = e.key.toUpperCase();
+          if (['V', 'S', 'L', 'F'].includes(key)) {
+            logEvent(`⌨️ Keyboard shortcut pressed: ${key}`, 'info');
+          }
+        }
+      });
+      
+      // Monitor reduced motion changes
+      window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+        checkReducedMotion();
+      });
+      
+      logEvent('✅ All test monitors active', 'success');
+    });
+  </script>
+</body>
+</html>

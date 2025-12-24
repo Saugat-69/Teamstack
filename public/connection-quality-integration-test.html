@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connection Quality Integration Test - TeamUp</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/video-feed.css">
+  <link rel="stylesheet" href="/css/connection-quality.css">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #111827;
+      color: #f3f4f6;
+    }
+    
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #3b82f6;
+    }
+    
+    .test-section {
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid #374151;
+    }
+    
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #f3f4f6;
+    }
+    
+    .status-item {
+      padding: 12px;
+      background: #374151;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .status-label {
+      font-weight: 600;
+    }
+    
+    .status-value {
+      color: #10b981;
+    }
+    
+    .status-value.error {
+      color: #ef4444;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      background: #3b82f6;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-right: 10px;
+    }
+    
+    .btn:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+    
+    .video-grid-demo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .video-feed {
+      position: relative;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #9ca3af;
+    }
+    
+    .video-placeholder i {
+      font-size: 48px;
+    }
+    
+    .video-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    }
+    
+    .user-name {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .log-container {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    
+    .log-entry {
+      padding: 4px 0;
+      color: #9ca3af;
+    }
+    
+    .log-entry.success {
+      color: #22c55e;
+    }
+    
+    .log-entry.error {
+      color: #ef4444;
+    }
+    
+    .log-entry.warning {
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1><i class="fas fa-check-circle"></i> Connection Quality Integration Test</h1>
+      <p>Verify that connection quality monitoring is properly integrated</p>
+    </div>
+    
+    <!-- Integration Status -->
+    <div class="test-section">
+      <h2><i class="fas fa-clipboard-check"></i> Integration Status</h2>
+      <div id="integration-status">
+        <!-- Status items will be added here -->
+      </div>
+    </div>
+    
+    <!-- Test Controls -->
+    <div class="test-section">
+      <h2><i class="fas fa-play-circle"></i> Test Controls</h2>
+      <button class="btn" id="test-init-btn">
+        <i class="fas fa-rocket"></i> Test Initialization
+      </button>
+      <button class="btn" id="test-monitoring-btn">
+        <i class="fas fa-chart-line"></i> Test Monitoring
+      </button>
+      <button class="btn" id="test-troubleshooting-btn">
+        <i class="fas fa-tools"></i> Test Troubleshooting
+      </button>
+      <button class="btn" id="test-cleanup-btn">
+        <i class="fas fa-trash"></i> Test Cleanup
+      </button>
+    </div>
+    
+    <!-- Event Log -->
+    <div class="test-section">
+      <h2><i class="fas fa-list"></i> Event Log</h2>
+      <div class="log-container" id="event-log">
+        <!-- Log entries will appear here -->
+      </div>
+    </div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="/js/quality-controller.js"></script>
+  <script src="/js/connection-quality-monitor.js"></script>
+  <script src="/js/video-grid-layout.js"></script>
+  
+  <script>
+    // Log function
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('event-log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Update status
+    function updateStatus(label, value, isError = false) {
+      const statusContainer = document.getElementById('integration-status');
+      
+      // Remove existing status item if present
+      const existingItem = Array.from(statusContainer.children).find(
+        item => item.querySelector('.status-label').textContent === label
+      );
+      if (existingItem) {
+        existingItem.remove();
+      }
+      
+      // Add new status item
+      const statusItem = document.createElement('div');
+      statusItem.className = 'status-item';
+      statusItem.innerHTML = `
+        <span class="status-label">${label}</span>
+        <span class="status-value ${isError ? 'error' : ''}">${value}</span>
+      `;
+      statusContainer.appendChild(statusItem);
+    }
+    
+    // Check if classes are available
+    function checkIntegration() {
+      log('Checking integration status...', 'info');
+      
+      // Check ConnectionQualityMonitor
+      if (typeof ConnectionQualityMonitor !== 'undefined') {
+        updateStatus('ConnectionQualityMonitor', '✅ Available');
+        log('✅ ConnectionQualityMonitor class is available', 'success');
+      } else {
+        updateStatus('ConnectionQualityMonitor', '❌ Not Found', true);
+        log('❌ ConnectionQualityMonitor class not found', 'error');
+      }
+      
+      // Check QualityController
+      if (typeof QualityController !== 'undefined') {
+        updateStatus('QualityController', '✅ Available');
+        log('✅ QualityController class is available', 'success');
+      } else {
+        updateStatus('QualityController', '❌ Not Found', true);
+        log('❌ QualityController class not found', 'error');
+      }
+      
+      // Check VideoGridLayout
+      if (typeof VideoGridLayout !== 'undefined') {
+        updateStatus('VideoGridLayout', '✅ Available');
+        log('✅ VideoGridLayout class is available', 'success');
+      } else {
+        updateStatus('VideoGridLayout', '❌ Not Found', true);
+        log('❌ VideoGridLayout class not found', 'error');
+      }
+      
+      // Check CSS
+      const cssLoaded = document.querySelector('link[href*="connection-quality.css"]');
+      if (cssLoaded) {
+        updateStatus('CSS Styles', '✅ Loaded');
+        log('✅ Connection quality CSS is loaded', 'success');
+      } else {
+        updateStatus('CSS Styles', '❌ Not Loaded', true);
+        log('❌ Connection quality CSS not loaded', 'error');
+      }
+    }
+    
+    // Test initialization
+    let monitor = null;
+    
+    document.getElementById('test-init-btn').addEventListener('click', () => {
+      try {
+        log('Testing ConnectionQualityMonitor initialization...', 'info');
+        
+        monitor = new ConnectionQualityMonitor({
+          monitoringInterval: 2000,
+          warningThreshold: 3,
+          autoQualityReduction: true
+        });
+        
+        updateStatus('Monitor Instance', '✅ Created');
+        log('✅ ConnectionQualityMonitor initialized successfully', 'success');
+        
+        // Test warning callback
+        monitor.onWarning((event) => {
+          log(`Warning event: ${event.type} - ${event.warningType || 'N/A'}`, 'warning');
+        });
+        
+        log('✅ Warning callback registered', 'success');
+      } catch (error) {
+        updateStatus('Monitor Instance', '❌ Failed', true);
+        log(`❌ Failed to initialize: ${error.message}`, 'error');
+      }
+    });
+    
+    // Test monitoring
+    document.getElementById('test-monitoring-btn').addEventListener('click', () => {
+      try {
+        if (!monitor) {
+          log('❌ Monitor not initialized. Click "Test Initialization" first.', 'error');
+          return;
+        }
+        
+        log('Testing peer monitoring...', 'info');
+        
+        // Create mock quality controller
+        const mockController = {
+          getQualityMetrics: () => ({
+            bitrate: 1500000,
+            packetLoss: 0.02,
+            frameRate: 30,
+            resolution: { width: 1280, height: 720 },
+            jitter: 0.03,
+            roundTripTime: 0.05,
+            connectionQuality: 'good'
+          }),
+          autoQualityEnabled: true,
+          adjustForBandwidth: async () => true
+        };
+        
+        // Create mock video feed element
+        const mockElement = document.createElement('div');
+        mockElement.className = 'video-feed';
+        mockElement.innerHTML = `
+          <div class="connection-indicator good">
+            <i class="fas fa-signal"></i>
+          </div>
+        `;
+        
+        // Add peer monitor
+        monitor.addPeerMonitor('test-user-1', mockController, mockElement);
+        
+        updateStatus('Peer Monitoring', '✅ Active');
+        log('✅ Peer monitor added successfully', 'success');
+        
+        // Get metrics
+        const metrics = monitor.getPeerMetrics('test-user-1');
+        log(`📊 Metrics: ${JSON.stringify(metrics)}`, 'info');
+        
+        // Test global metrics
+        const globalMetrics = monitor.getGlobalMetrics();
+        log(`📊 Global metrics: ${JSON.stringify(globalMetrics)}`, 'info');
+        
+      } catch (error) {
+        updateStatus('Peer Monitoring', '❌ Failed', true);
+        log(`❌ Failed to test monitoring: ${error.message}`, 'error');
+      }
+    });
+    
+    // Test troubleshooting
+    document.getElementById('test-troubleshooting-btn').addEventListener('click', () => {
+      try {
+        if (!monitor) {
+          log('❌ Monitor not initialized. Click "Test Initialization" first.', 'error');
+          return;
+        }
+        
+        log('Testing troubleshooting panel...', 'info');
+        
+        // Register a warning to trigger troubleshooting
+        monitor.registerWarning('test-user-1', 'lowBitrate', {
+          bitrate: 200000,
+          packetLoss: 0.02,
+          frameRate: 30
+        });
+        
+        // Show troubleshooting panel
+        monitor.showTroubleshootingPanel();
+        
+        updateStatus('Troubleshooting Panel', '✅ Displayed');
+        log('✅ Troubleshooting panel displayed', 'success');
+        
+      } catch (error) {
+        updateStatus('Troubleshooting Panel', '❌ Failed', true);
+        log(`❌ Failed to show troubleshooting: ${error.message}`, 'error');
+      }
+    });
+    
+    // Test cleanup
+    document.getElementById('test-cleanup-btn').addEventListener('click', () => {
+      try {
+        if (!monitor) {
+          log('❌ Monitor not initialized.', 'error');
+          return;
+        }
+        
+        log('Testing cleanup...', 'info');
+        
+        monitor.destroy();
+        monitor = null;
+        
+        updateStatus('Monitor Instance', '✅ Destroyed');
+        log('✅ Monitor destroyed successfully', 'success');
+        
+      } catch (error) {
+        updateStatus('Monitor Instance', '❌ Cleanup Failed', true);
+        log(`❌ Failed to cleanup: ${error.message}`, 'error');
+      }
+    });
+    
+    // Run integration check on load
+    window.addEventListener('load', () => {
+      log('Integration test page loaded', 'success');
+      checkIntegration();
+    });
+  </script>
+</body>
+</html>

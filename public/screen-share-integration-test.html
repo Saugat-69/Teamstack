@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen Share Integration Test - TeamUp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .test-panel {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e0e7ff;
+      color: #667eea;
+    }
+
+    .video-grid-container {
+      width: 100%;
+      height: 600px;
+      background: #1a1a1a;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .status-panel {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .status-value {
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .status-value.active {
+      color: #10b981;
+    }
+
+    .log-panel {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+
+    .log-entry {
+      color: #e2e8f0;
+      padding: 4px 0;
+    }
+
+    .log-entry.success {
+      color: #10b981;
+    }
+
+    .log-entry.error {
+      color: #ef4444;
+    }
+
+    .log-entry.info {
+      color: #3b82f6;
+    }
+
+    /* Video feed styles */
+    .video-feed {
+      position: relative;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .video-element {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background: linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .video-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-feed:hover .video-controls {
+      opacity: 1;
+    }
+
+    .video-control-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-control-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .pin-indicator {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--primary-400);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .video-feed.pinned .pin-indicator {
+      display: block;
+    }
+
+    .connection-indicator {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-desktop"></i> Screen Share Integration Test</h1>
+      <p>Test screen sharing integration with video grid layout</p>
+    </div>
+
+    <div class="test-panel">
+      <h2><i class="fas fa-play-circle"></i> Controls</h2>
+      
+      <div class="controls">
+        <button id="addVideoBtn" class="btn btn-primary">
+          <i class="fas fa-video"></i> Add Video Feed
+        </button>
+        <button id="startScreenShareBtn" class="btn btn-primary">
+          <i class="fas fa-desktop"></i> Start Screen Share
+        </button>
+        <button id="stopScreenShareBtn" class="btn btn-danger" disabled>
+          <i class="fas fa-stop"></i> Stop Screen Share
+        </button>
+        <button id="gridLayoutBtn" class="btn btn-secondary">
+          <i class="fas fa-th"></i> Grid
+        </button>
+        <button id="speakerLayoutBtn" class="btn btn-secondary">
+          <i class="fas fa-user"></i> Speaker
+        </button>
+        <button id="clearAllBtn" class="btn btn-danger">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+      </div>
+
+      <div class="status-panel">
+        <div class="status-item">
+          <span class="status-label">Screen Sharing:</span>
+          <span id="screenShareStatus" class="status-value">Not Active</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Layout Mode:</span>
+          <span id="layoutMode" class="status-value">Grid</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Video Feeds:</span>
+          <span id="feedCount" class="status-value">0</span>
+        </div>
+      </div>
+
+      <div id="videoGridContainer" class="video-grid-container"></div>
+    </div>
+
+    <div class="test-panel">
+      <h2><i class="fas fa-terminal"></i> Event Log</h2>
+      <div class="log-panel" id="logPanel"></div>
+    </div>
+  </div>
+
+  <script src="js/video-grid-layout.js"></script>
+  <script src="js/screen-share-manager.js"></script>
+  <script>
+    // Initialize
+    const videoGridContainer = document.getElementById('videoGridContainer');
+    const videoGrid = new VideoGridLayout(videoGridContainer);
+    
+    // Mock MediaManager
+    const mockMediaManager = {
+      socket: null,
+      app: {
+        state: { currentRoom: 'test-room' },
+        handleScreenShareStarted: (stream) => log('App: Screen share started', 'success'),
+        handleScreenShareStopped: () => log('App: Screen share stopped', 'success')
+      }
+    };
+    
+    const screenShareManager = new ScreenShareManager(mockMediaManager);
+    
+    // UI Elements
+    const addVideoBtn = document.getElementById('addVideoBtn');
+    const startScreenShareBtn = document.getElementById('startScreenShareBtn');
+    const stopScreenShareBtn = document.getElementById('stopScreenShareBtn');
+    const gridLayoutBtn = document.getElementById('gridLayoutBtn');
+    const speakerLayoutBtn = document.getElementById('speakerLayoutBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const screenShareStatus = document.getElementById('screenShareStatus');
+    const layoutMode = document.getElementById('layoutMode');
+    const feedCount = document.getElementById('feedCount');
+    const logPanel = document.getElementById('logPanel');
+    
+    let videoCounter = 0;
+    let currentScreenShareUserId = null;
+
+    // Logging function
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logPanel.appendChild(entry);
+      logPanel.scrollTop = logPanel.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    // Update UI status
+    function updateStatus() {
+      screenShareStatus.textContent = currentScreenShareUserId ? 'Active' : 'Not Active';
+      screenShareStatus.className = currentScreenShareUserId ? 'status-value active' : 'status-value';
+      layoutMode.textContent = videoGrid.layoutMode.charAt(0).toUpperCase() + videoGrid.layoutMode.slice(1);
+      feedCount.textContent = videoGrid.getVideoFeeds().size;
+      
+      startScreenShareBtn.disabled = currentScreenShareUserId !== null;
+      stopScreenShareBtn.disabled = currentScreenShareUserId === null;
+    }
+
+    // Create mock video stream
+    function createMockVideoStream() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw animated content
+      let hue = Math.random() * 360;
+      setInterval(() => {
+        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = '48px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Mock Video', canvas.width / 2, canvas.height / 2);
+        
+        hue = (hue + 1) % 360;
+      }, 50);
+      
+      return canvas.captureStream(30);
+    }
+
+    // Create mock screen share stream
+    function createMockScreenStream() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1920;
+      canvas.height = 1080;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw screen-like content
+      let frame = 0;
+      setInterval(() => {
+        // Background
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Title bar
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, canvas.width, 60);
+        
+        // Content
+        ctx.fillStyle = 'white';
+        ctx.font = '72px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Screen Share Demo', canvas.width / 2, canvas.height / 2);
+        
+        ctx.font = '36px Arial';
+        ctx.fillText(`Frame: ${frame++}`, canvas.width / 2, canvas.height / 2 + 60);
+      }, 100);
+      
+      return canvas.captureStream(30);
+    }
+
+    // Add video feed
+    addVideoBtn.addEventListener('click', () => {
+      videoCounter++;
+      const userId = `user-${videoCounter}`;
+      const stream = createMockVideoStream();
+      
+      videoGrid.addVideoFeed(userId, stream, {
+        name: `User ${videoCounter}`,
+        isLocal: videoCounter === 1
+      });
+      
+      log(`Added video feed for ${userId}`, 'success');
+      updateStatus();
+    });
+
+    // Start screen share
+    startScreenShareBtn.addEventListener('click', async () => {
+      try {
+        log('Starting screen share...', 'info');
+        
+        // Try to get real screen share, fallback to mock
+        let stream;
+        try {
+          stream = await screenShareManager.startSharing();
+        } catch (error) {
+          if (error.message === 'Screen share cancelled') {
+            log('Screen share cancelled by user', 'info');
+            return;
+          }
+          log('Using mock screen stream (real screen share not available)', 'info');
+          stream = createMockScreenStream();
+        }
+        
+        currentScreenShareUserId = 'local-user';
+        
+        // Add screen share to video grid
+        videoGrid.setScreenShare(currentScreenShareUserId, stream, {
+          name: 'You',
+          isLocal: true
+        });
+        
+        log('Screen share started and integrated with video grid', 'success');
+        log('Layout automatically switched to speaker view', 'info');
+        updateStatus();
+      } catch (error) {
+        log(`Failed to start screen share: ${error.message}`, 'error');
+      }
+    });
+
+    // Stop screen share
+    stopScreenShareBtn.addEventListener('click', async () => {
+      try {
+        log('Stopping screen share...', 'info');
+        
+        if (screenShareManager.isSharingScreen()) {
+          await screenShareManager.stopSharing();
+        }
+        
+        videoGrid.clearScreenShare();
+        currentScreenShareUserId = null;
+        
+        log('Screen share stopped', 'success');
+        log('Layout restored to previous mode', 'info');
+        updateStatus();
+      } catch (error) {
+        log(`Failed to stop screen share: ${error.message}`, 'error');
+      }
+    });
+
+    // Layout buttons
+    gridLayoutBtn.addEventListener('click', () => {
+      videoGrid.setLayoutMode('grid');
+      log('Layout changed to grid', 'info');
+      updateStatus();
+    });
+
+    speakerLayoutBtn.addEventListener('click', () => {
+      videoGrid.setLayoutMode('speaker');
+      log('Layout changed to speaker', 'info');
+      updateStatus();
+    });
+
+    // Clear all
+    clearAllBtn.addEventListener('click', () => {
+      if (currentScreenShareUserId) {
+        if (screenShareManager.isSharingScreen()) {
+          screenShareManager.stopSharing();
+        }
+        currentScreenShareUserId = null;
+      }
+      
+      videoGrid.clearAll();
+      videoCounter = 0;
+      log('All feeds cleared', 'info');
+      updateStatus();
+    });
+
+    // Listen for stop screen share event from video grid
+    videoGridContainer.addEventListener('stop-screen-share', (event) => {
+      log(`Stop sharing requested from UI for ${event.detail.userId}`, 'info');
+      
+      if (screenShareManager.isSharingScreen()) {
+        screenShareManager.stopSharing();
+      }
+      
+      currentScreenShareUserId = null;
+      updateStatus();
+    });
+
+    // Initialize
+    log('Screen Share Integration Test initialized', 'success');
+    log('Click "Add Video Feed" to add mock video feeds', 'info');
+    log('Click "Start Screen Share" to test screen sharing integration', 'info');
+    updateStatus();
+  </script>
+</body>
+</html>

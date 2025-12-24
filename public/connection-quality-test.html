@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connection Quality Monitoring Test - TeamUp</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/video-feed.css">
+  <link rel="stylesheet" href="/css/connection-quality.css">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #111827;
+      color: #f3f4f6;
+    }
+    
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #3b82f6;
+    }
+    
+    .test-header p {
+      color: #9ca3af;
+      font-size: 16px;
+    }
+    
+    .test-section {
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid #374151;
+    }
+    
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #f3f4f6;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .test-section h2 i {
+      color: #3b82f6;
+    }
+    
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .control-group label {
+      font-size: 14px;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+    
+    .control-group select,
+    .control-group input {
+      padding: 10px 12px;
+      background: #374151;
+      border: 1px solid #4b5563;
+      border-radius: 8px;
+      color: #f3f4f6;
+      font-size: 14px;
+    }
+    
+    .control-group button {
+      padding: 10px 16px;
+      background: #3b82f6;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .control-group button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+    
+    .control-group button.danger {
+      background: #ef4444;
+    }
+    
+    .control-group button.danger:hover {
+      background: #dc2626;
+    }
+    
+    .video-grid-demo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .video-feed {
+      position: relative;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #9ca3af;
+    }
+    
+    .video-placeholder i {
+      font-size: 48px;
+    }
+    
+    .video-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    }
+    
+    .user-name {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .status-display {
+      background: #374151;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .status-display h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #f3f4f6;
+    }
+    
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    
+    .status-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .status-label {
+      font-size: 12px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f3f4f6;
+    }
+    
+    .log-container {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      margin-top: 16px;
+    }
+    
+    .log-entry {
+      padding: 4px 0;
+      color: #9ca3af;
+    }
+    
+    .log-entry.info {
+      color: #3b82f6;
+    }
+    
+    .log-entry.warning {
+      color: #f59e0b;
+    }
+    
+    .log-entry.error {
+      color: #ef4444;
+    }
+    
+    .log-entry.success {
+      color: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1><i class="fas fa-chart-line"></i> Connection Quality Monitoring Test</h1>
+      <p>Test and demonstrate connection quality monitoring features</p>
+    </div>
+    
+    <!-- Simulation Controls -->
+    <div class="test-section">
+      <h2><i class="fas fa-sliders-h"></i> Simulation Controls</h2>
+      
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="peer-select">Select Peer</label>
+          <select id="peer-select">
+            <option value="user1">User 1 (Alice)</option>
+            <option value="user2">User 2 (Bob)</option>
+            <option value="user3">User 3 (Charlie)</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="quality-select">Simulate Quality</label>
+          <select id="quality-select">
+            <option value="excellent">Excellent</option>
+            <option value="good" selected>Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="bitrate-input">Bitrate (kbps)</label>
+          <input type="number" id="bitrate-input" value="1500" min="0" max="5000">
+        </div>
+        
+        <div class="control-group">
+          <label for="packet-loss-input">Packet Loss (%)</label>
+          <input type="number" id="packet-loss-input" value="1" min="0" max="100" step="0.1">
+        </div>
+        
+        <div class="control-group">
+          <label for="frame-rate-input">Frame Rate (fps)</label>
+          <input type="number" id="frame-rate-input" value="30" min="0" max="60">
+        </div>
+        
+        <div class="control-group">
+          <label for="latency-input">Latency (ms)</label>
+          <input type="number" id="latency-input" value="50" min="0" max="1000">
+        </div>
+      </div>
+      
+      <div class="controls-grid">
+        <div class="control-group">
+          <button id="apply-metrics-btn">
+            <i class="fas fa-check"></i> Apply Metrics
+          </button>
+        </div>
+        
+        <div class="control-group">
+          <button id="show-troubleshooting-btn">
+            <i class="fas fa-tools"></i> Show Troubleshooting
+          </button>
+        </div>
+        
+        <div class="control-group">
+          <button id="simulate-poor-btn" class="danger">
+            <i class="fas fa-exclamation-triangle"></i> Simulate Poor Connection
+          </button>
+        </div>
+        
+        <div class="control-group">
+          <button id="reset-btn">
+            <i class="fas fa-redo"></i> Reset All
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Video Feeds Demo -->
+    <div class="test-section">
+      <h2><i class="fas fa-video"></i> Video Feeds with Quality Indicators</h2>
+      
+      <div class="video-grid-demo" id="video-grid">
+        <!-- Video feeds will be added here -->
+      </div>
+    </div>
+    
+    <!-- Metrics Display -->
+    <div class="test-section">
+      <h2><i class="fas fa-chart-bar"></i> Connection Metrics</h2>
+      
+      <div id="metrics-display">
+        <!-- Metrics will be displayed here -->
+      </div>
+    </div>
+    
+    <!-- Event Log -->
+    <div class="test-section">
+      <h2><i class="fas fa-list"></i> Event Log</h2>
+      
+      <div class="log-container" id="event-log">
+        <!-- Log entries will appear here -->
+      </div>
+    </div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="/js/quality-controller.js"></script>
+  <script src="/js/connection-quality-monitor.js"></script>
+  
+  <script>
+    // Mock Quality Controller for testing
+    class MockQualityController {
+      constructor(userId) {
+        this.userId = userId;
+        this.metrics = {
+          bitrate: 1500000,
+          packetLoss: 0.01,
+          frameRate: 30,
+          resolution: { width: 1280, height: 720 },
+          jitter: 0.02,
+          roundTripTime: 0.05,
+          connectionQuality: 'good',
+          currentQuality: 'high',
+          qualityName: 'High (720p)',
+          autoQualityEnabled: true
+        };
+        this.autoQualityEnabled = true;
+      }
+      
+      getQualityMetrics() {
+        return this.metrics;
+      }
+      
+      setMetrics(newMetrics) {
+        this.metrics = { ...this.metrics, ...newMetrics };
+      }
+      
+      async adjustForBandwidth(bandwidth) {
+        log(`Auto quality adjustment triggered for ${this.userId}`, 'info');
+        return true;
+      }
+    }
+    
+    // Initialize
+    const monitor = new ConnectionQualityMonitor({
+      monitoringInterval: 2000,
+      warningThreshold: 2,
+      autoQualityReduction: true
+    });
+    
+    const mockControllers = new Map();
+    const testUsers = [
+      { id: 'user1', name: 'Alice' },
+      { id: 'user2', name: 'Bob' },
+      { id: 'user3', name: 'Charlie' }
+    ];
+    
+    // Create video feeds
+    function createVideoFeeds() {
+      const grid = document.getElementById('video-grid');
+      grid.innerHTML = '';
+      
+      testUsers.forEach(user => {
+        const feed = document.createElement('div');
+        feed.className = 'video-feed';
+        feed.id = `feed-${user.id}`;
+        feed.dataset.userId = user.id;
+        
+        feed.innerHTML = `
+          <div class="video-placeholder">
+            <i class="fas fa-user-circle"></i>
+            <span>${user.name}</span>
+          </div>
+          <div class="video-overlay">
+            <span class="user-name">${user.name}</span>
+          </div>
+          <div class="connection-indicator good" title="Good connection">
+            <i class="fas fa-signal"></i>
+          </div>
+        `;
+        
+        grid.appendChild(feed);
+        
+        // Create mock quality controller
+        const controller = new MockQualityController(user.id);
+        mockControllers.set(user.id, controller);
+        
+        // Add to monitor
+        monitor.addPeerMonitor(user.id, controller, feed);
+      });
+      
+      log('Video feeds created and monitoring started', 'success');
+    }
+    
+    // Update metrics display
+    function updateMetricsDisplay() {
+      const container = document.getElementById('metrics-display');
+      container.innerHTML = '';
+      
+      testUsers.forEach(user => {
+        const controller = mockControllers.get(user.id);
+        if (!controller) return;
+        
+        const metrics = controller.getQualityMetrics();
+        
+        const display = document.createElement('div');
+        display.className = 'status-display';
+        display.innerHTML = `
+          <h3>${user.name}'s Connection</h3>
+          <div class="status-grid">
+            <div class="status-item">
+              <span class="status-label">Quality</span>
+              <span class="status-value quality-${metrics.connectionQuality}">${metrics.connectionQuality}</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Bitrate</span>
+              <span class="status-value">${Math.round(metrics.bitrate / 1000)} kbps</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Packet Loss</span>
+              <span class="status-value">${(metrics.packetLoss * 100).toFixed(2)}%</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Frame Rate</span>
+              <span class="status-value">${metrics.frameRate} fps</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Latency</span>
+              <span class="status-value">${Math.round(metrics.roundTripTime * 1000)} ms</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Resolution</span>
+              <span class="status-value">${metrics.resolution.width}x${metrics.resolution.height}</span>
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(display);
+      });
+    }
+    
+    // Log function
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('event-log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Apply metrics
+    document.getElementById('apply-metrics-btn').addEventListener('click', () => {
+      const userId = document.getElementById('peer-select').value;
+      const quality = document.getElementById('quality-select').value;
+      const bitrate = parseInt(document.getElementById('bitrate-input').value) * 1000;
+      const packetLoss = parseFloat(document.getElementById('packet-loss-input').value) / 100;
+      const frameRate = parseInt(document.getElementById('frame-rate-input').value);
+      const latency = parseInt(document.getElementById('latency-input').value) / 1000;
+      
+      const controller = mockControllers.get(userId);
+      if (controller) {
+        controller.setMetrics({
+          bitrate,
+          packetLoss,
+          frameRate,
+          roundTripTime: latency,
+          connectionQuality: quality
+        });
+        
+        log(`Applied metrics to ${userId}: ${quality} quality, ${Math.round(bitrate/1000)} kbps`, 'info');
+        updateMetricsDisplay();
+      }
+    });
+    
+    // Show troubleshooting
+    document.getElementById('show-troubleshooting-btn').addEventListener('click', () => {
+      monitor.showTroubleshootingPanel();
+      log('Troubleshooting panel opened', 'info');
+    });
+    
+    // Simulate poor connection
+    document.getElementById('simulate-poor-btn').addEventListener('click', () => {
+      const userId = document.getElementById('peer-select').value;
+      const controller = mockControllers.get(userId);
+      
+      if (controller) {
+        controller.setMetrics({
+          bitrate: 200000,
+          packetLoss: 0.08,
+          frameRate: 15,
+          roundTripTime: 0.4,
+          connectionQuality: 'poor'
+        });
+        
+        log(`Simulated poor connection for ${userId}`, 'warning');
+        updateMetricsDisplay();
+      }
+    });
+    
+    // Reset
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      mockControllers.forEach((controller, userId) => {
+        controller.setMetrics({
+          bitrate: 1500000,
+          packetLoss: 0.01,
+          frameRate: 30,
+          roundTripTime: 0.05,
+          connectionQuality: 'good'
+        });
+      });
+      
+      log('All connections reset to good quality', 'success');
+      updateMetricsDisplay();
+    });
+    
+    // Listen for warnings
+    monitor.onWarning((event) => {
+      if (event.type === 'warning-added') {
+        log(`Warning: ${event.warningType} detected for ${event.userId}`, 'warning');
+      } else if (event.type === 'warning-cleared') {
+        log(`Warning cleared: ${event.warningType} for ${event.userId}`, 'success');
+      }
+    });
+    
+    // Initialize
+    createVideoFeeds();
+    updateMetricsDisplay();
+    
+    // Update metrics display periodically
+    setInterval(updateMetricsDisplay, 2000);
+    
+    log('Connection Quality Monitoring Test initialized', 'success');
+  </script>
+</body>
+</html>

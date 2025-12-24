@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Handling Integration Test - TeamUp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      padding: 2rem;
+      background: #f3f4f6;
+    }
+
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .test-header {
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .test-header h1 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .test-header p {
+      color: #6b7280;
+    }
+
+    .test-section {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .test-section h2 {
+      color: #1f2937;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .test-controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .test-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .test-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .test-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .test-btn.success {
+      background: #10b981;
+      color: white;
+    }
+
+    .test-btn.danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .test-results {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .result-item {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.25rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .result-item.pass {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .result-item.fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .result-item.info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .video-preview {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .video-preview video {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 0.5rem;
+      background: #000;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .status-badge.active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1><i class="fas fa-flask"></i> Error Handling Integration Test</h1>
+      <p>Test the complete error handling system with real MediaManager and ScreenShareManager instances</p>
+    </div>
+
+    <!-- Camera Error Handling Tests -->
+    <div class="test-section">
+      <h2>
+        <i class="fas fa-video"></i> Camera Error Handling
+        <span class="status-badge inactive" id="cameraStatus">Inactive</span>
+      </h2>
+      <div class="test-controls">
+        <button class="test-btn primary" onclick="testEnableCamera()">
+          <i class="fas fa-camera"></i> Enable Camera
+        </button>
+        <button class="test-btn danger" onclick="testDisableCamera()">
+          <i class="fas fa-camera-slash"></i> Disable Camera
+        </button>
+        <button class="test-btn success" onclick="testCameraPermissionFlow()">
+          <i class="fas fa-check-circle"></i> Test Full Flow
+        </button>
+      </div>
+      <div class="video-preview" id="cameraPreview">
+        <video id="localVideo" autoplay muted playsinline></video>
+      </div>
+      <div class="test-results" id="cameraResults"></div>
+    </div>
+
+    <!-- Screen Share Error Handling Tests -->
+    <div class="test-section">
+      <h2>
+        <i class="fas fa-desktop"></i> Screen Share Error Handling
+        <span class="status-badge inactive" id="screenShareStatus">Inactive</span>
+      </h2>
+      <div class="test-controls">
+        <button class="test-btn primary" onclick="testStartScreenShare()">
+          <i class="fas fa-share-square"></i> Start Screen Share
+        </button>
+        <button class="test-btn danger" onclick="testStopScreenShare()">
+          <i class="fas fa-stop-circle"></i> Stop Screen Share
+        </button>
+        <button class="test-btn success" onclick="testScreenShareFlow()">
+          <i class="fas fa-check-circle"></i> Test Full Flow
+        </button>
+      </div>
+      <div class="video-preview" id="screenPreview">
+        <video id="screenVideo" autoplay playsinline></video>
+      </div>
+      <div class="test-results" id="screenShareResults"></div>
+    </div>
+
+    <!-- Browser Compatibility Tests -->
+    <div class="test-section">
+      <h2><i class="fas fa-browser"></i> Browser Compatibility</h2>
+      <div class="test-controls">
+        <button class="test-btn primary" onclick="testBrowserCompatibility()">
+          <i class="fas fa-check"></i> Check Compatibility
+        </button>
+      </div>
+      <div class="test-results" id="compatibilityResults"></div>
+    </div>
+  </div>
+
+  <!-- Load dependencies -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/media-manager.js"></script>
+  <script src="js/screen-share-manager.js"></script>
+
+  <script>
+    // Mock app and socket for testing
+    const mockApp = {
+      state: {
+        currentRoom: 'test-room'
+      },
+      showNotification: function(message, type) {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+        
+        // Show in UI
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 1rem 1.5rem;
+          background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+          color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 10000;
+          max-width: 400px;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 5000);
+      },
+      handleVideoEnabled: function(stream) {
+        console.log('✅ Video enabled callback');
+        document.getElementById('localVideo').srcObject = stream;
+        document.getElementById('cameraPreview').style.display = 'block';
+        updateStatus('cameraStatus', 'Active', true);
+      },
+      handleVideoDisabled: function() {
+        console.log('✅ Video disabled callback');
+        document.getElementById('localVideo').srcObject = null;
+        document.getElementById('cameraPreview').style.display = 'none';
+        updateStatus('cameraStatus', 'Inactive', false);
+      },
+      handleScreenShareStarted: function(stream) {
+        console.log('✅ Screen share started callback');
+        document.getElementById('screenVideo').srcObject = stream;
+        document.getElementById('screenPreview').style.display = 'block';
+        updateStatus('screenShareStatus', 'Active', true);
+      },
+      handleScreenShareStopped: function() {
+        console.log('✅ Screen share stopped callback');
+        document.getElementById('screenVideo').srcObject = null;
+        document.getElementById('screenPreview').style.display = 'none';
+        updateStatus('screenShareStatus', 'Inactive', false);
+      }
+    };
+
+    const mockSocket = {
+      emit: function(event, data) {
+        console.log(`Socket emit: ${event}`, data);
+      }
+    };
+
+    // Create MediaManager and ScreenShareManager instances
+    let mediaManager;
+    let screenShareManager;
+
+    function initializeManagers() {
+      try {
+        mediaManager = new MediaManager(mockSocket, mockApp);
+        screenShareManager = new ScreenShareManager(mediaManager);
+        addResult('cameraResults', 'Managers initialized successfully', 'pass');
+        return true;
+      } catch (error) {
+        addResult('cameraResults', `Failed to initialize: ${error.message}`, 'fail');
+        return false;
+      }
+    }
+
+    // Camera Tests
+    async function testEnableCamera() {
+      if (!mediaManager && !initializeManagers()) return;
+      
+      clearResults('cameraResults');
+      addResult('cameraResults', 'Testing camera enable...', 'info');
+      
+      try {
+        await mediaManager.enableVideo();
+        addResult('cameraResults', '✅ Camera enabled successfully', 'pass');
+      } catch (error) {
+        addResult('cameraResults', `❌ Camera error: ${error.message}`, 'fail');
+      }
+    }
+
+    async function testDisableCamera() {
+      if (!mediaManager) {
+        addResult('cameraResults', 'Please enable camera first', 'info');
+        return;
+      }
+      
+      clearResults('cameraResults');
+      addResult('cameraResults', 'Testing camera disable...', 'info');
+      
+      try {
+        await mediaManager.disableVideo();
+        addResult('cameraResults', '✅ Camera disabled successfully', 'pass');
+      } catch (error) {
+        addResult('cameraResults', `❌ Disable error: ${error.message}`, 'fail');
+      }
+    }
+
+    async function testCameraPermissionFlow() {
+      if (!mediaManager && !initializeManagers()) return;
+      
+      clearResults('cameraResults');
+      addResult('cameraResults', 'Testing complete camera flow...', 'info');
+      
+      try {
+        // Test enable
+        await mediaManager.enableVideo();
+        addResult('cameraResults', '✅ Step 1: Camera enabled', 'pass');
+        
+        // Wait a bit
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Test disable
+        await mediaManager.disableVideo();
+        addResult('cameraResults', '✅ Step 2: Camera disabled', 'pass');
+        
+        addResult('cameraResults', '✅ Complete flow test passed', 'pass');
+      } catch (error) {
+        addResult('cameraResults', `❌ Flow test failed: ${error.message}`, 'fail');
+      }
+    }
+
+    // Screen Share Tests
+    async function testStartScreenShare() {
+      if (!screenShareManager && !initializeManagers()) return;
+      
+      clearResults('screenShareResults');
+      addResult('screenShareResults', 'Testing screen share start...', 'info');
+      
+      try {
+        await screenShareManager.startSharing();
+        addResult('screenShareResults', '✅ Screen share started successfully', 'pass');
+      } catch (error) {
+        if (error.userCancelled) {
+          addResult('screenShareResults', 'ℹ️ User cancelled (this is normal)', 'info');
+        } else {
+          addResult('screenShareResults', `❌ Screen share error: ${error.message}`, 'fail');
+        }
+      }
+    }
+
+    async function testStopScreenShare() {
+      if (!screenShareManager) {
+        addResult('screenShareResults', 'Please start screen share first', 'info');
+        return;
+      }
+      
+      clearResults('screenShareResults');
+      addResult('screenShareResults', 'Testing screen share stop...', 'info');
+      
+      try {
+        await screenShareManager.stopSharing();
+        addResult('screenShareResults', '✅ Screen share stopped successfully', 'pass');
+      } catch (error) {
+        addResult('screenShareResults', `❌ Stop error: ${error.message}`, 'fail');
+      }
+    }
+
+    async function testScreenShareFlow() {
+      if (!screenShareManager && !initializeManagers()) return;
+      
+      clearResults('screenShareResults');
+      addResult('screenShareResults', 'Testing complete screen share flow...', 'info');
+      
+      try {
+        // Test start
+        await screenShareManager.startSharing();
+        addResult('screenShareResults', '✅ Step 1: Screen share started', 'pass');
+        
+        // Wait a bit
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Test stop
+        await screenShareManager.stopSharing();
+        addResult('screenShareResults', '✅ Step 2: Screen share stopped', 'pass');
+        
+        addResult('screenShareResults', '✅ Complete flow test passed', 'pass');
+      } catch (error) {
+        if (error.userCancelled) {
+          addResult('screenShareResults', 'ℹ️ User cancelled (this is normal)', 'info');
+        } else {
+          addResult('screenShareResults', `❌ Flow test failed: ${error.message}`, 'fail');
+        }
+      }
+    }
+
+    // Browser Compatibility Tests
+    function testBrowserCompatibility() {
+      clearResults('compatibilityResults');
+      
+      // Test camera support
+      const cameraSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      addResult('compatibilityResults', 
+        `Camera API: ${cameraSupported ? '✅ Supported' : '❌ Not Supported'}`,
+        cameraSupported ? 'pass' : 'fail'
+      );
+      
+      // Test screen share support
+      const screenShareSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+      addResult('compatibilityResults',
+        `Screen Share API: ${screenShareSupported ? '✅ Supported' : '❌ Not Supported'}`,
+        screenShareSupported ? 'pass' : 'fail'
+      );
+      
+      // Detect browser
+      const ua = navigator.userAgent.toLowerCase();
+      let browser = 'Unknown';
+      if (ua.includes('chrome') && !ua.includes('edge')) browser = 'Chrome';
+      else if (ua.includes('firefox')) browser = 'Firefox';
+      else if (ua.includes('safari') && !ua.includes('chrome')) browser = 'Safari';
+      else if (ua.includes('edge')) browser = 'Edge';
+      
+      addResult('compatibilityResults', `Browser: ${browser}`, 'info');
+      
+      // Test browser compatibility check
+      if (screenShareManager || initializeManagers()) {
+        const compat = screenShareManager.checkBrowserCompatibility();
+        addResult('compatibilityResults',
+          `Compatibility Check: ${compat.supported ? '✅ Passed' : '❌ Failed'}`,
+          compat.supported ? 'pass' : 'fail'
+        );
+        if (!compat.supported) {
+          addResult('compatibilityResults', compat.message, 'info');
+        }
+      }
+    }
+
+    // Utility Functions
+    function addResult(containerId, message, type) {
+      const container = document.getElementById(containerId);
+      const item = document.createElement('div');
+      item.className = `result-item ${type}`;
+      item.textContent = message;
+      container.appendChild(item);
+    }
+
+    function clearResults(containerId) {
+      document.getElementById(containerId).innerHTML = '';
+    }
+
+    function updateStatus(elementId, text, active) {
+      const element = document.getElementById(elementId);
+      element.textContent = text;
+      element.className = `status-badge ${active ? 'active' : 'inactive'}`;
+    }
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      console.log('Integration test page loaded');
+      testBrowserCompatibility();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Layout Modes Test - TeamUp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .test-header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .test-header h1 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    
+    .test-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .test-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .test-btn-primary {
+      background: #6f00ff;
+      color: white;
+    }
+    
+    .test-btn-primary:hover {
+      background: #5a00cc;
+      transform: translateY(-2px);
+    }
+    
+    .test-btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .test-btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .test-btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .test-btn-danger:hover {
+      background: #dc2626;
+    }
+    
+    .layout-selector {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .layout-btn {
+      padding: 8px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .layout-btn.active {
+      background: #6f00ff;
+      color: white;
+      border-color: #6f00ff;
+    }
+    
+    .layout-btn:hover:not(.active) {
+      border-color: #6f00ff;
+      color: #6f00ff;
+    }
+    
+    .video-container {
+      width: 100%;
+      height: 600px;
+      background: #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .info-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-panel h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    
+    .info-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .info-item:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      font-weight: 600;
+      color: #6b7280;
+      margin-right: 8px;
+    }
+    
+    .info-value {
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1><i class="fas fa-video"></i> Video Layout Modes Test</h1>
+      <p>Test all layout modes: Grid, Speaker, Sidebar, and Picture-in-Picture with drag support</p>
+      
+      <div class="test-controls">
+        <button class="test-btn test-btn-primary" onclick="addTestVideo()">
+          <i class="fas fa-plus"></i> Add Video Feed
+        </button>
+        <button class="test-btn test-btn-secondary" onclick="removeTestVideo()">
+          <i class="fas fa-minus"></i> Remove Video Feed
+        </button>
+        <button class="test-btn test-btn-danger" onclick="clearAllVideos()">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+        <button class="test-btn test-btn-secondary" onclick="testPinning()">
+          <i class="fas fa-thumbtack"></i> Test Pinning
+        </button>
+      </div>
+      
+      <div class="layout-selector">
+        <strong>Layout Mode:</strong>
+        <button class="layout-btn active" data-mode="grid" onclick="setLayout('grid')">
+          <i class="fas fa-th"></i> Grid
+        </button>
+        <button class="layout-btn" data-mode="speaker" onclick="setLayout('speaker')">
+          <i class="fas fa-user"></i> Speaker
+        </button>
+        <button class="layout-btn" data-mode="sidebar" onclick="setLayout('sidebar')">
+          <i class="fas fa-columns"></i> Sidebar
+        </button>
+        <button class="layout-btn" data-mode="pip" onclick="setLayout('pip')">
+          <i class="fas fa-window-restore"></i> Picture-in-Picture
+        </button>
+      </div>
+    </div>
+    
+    <div class="video-container" id="videoContainer"></div>
+    
+    <div class="info-panel">
+      <h3><i class="fas fa-info-circle"></i> Test Information</h3>
+      <div class="info-item">
+        <span class="info-label">Current Layout:</span>
+        <span class="info-value" id="currentLayout">grid</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Video Feeds:</span>
+        <span class="info-value" id="feedCount">0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Pinned Feeds:</span>
+        <span class="info-value" id="pinnedCount">0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">LocalStorage Persistence:</span>
+        <span class="info-value" id="persistenceStatus">Enabled</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/video-grid-layout.js"></script>
+  <script>
+    let videoGrid;
+    let videoCounter = 0;
+    const testUsers = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry'];
+    
+    // Initialize video grid
+    function initVideoGrid() {
+      const container = document.getElementById('videoContainer');
+      videoGrid = new VideoGridLayout(container);
+      console.log('✅ Video grid initialized');
+      updateInfo();
+    }
+    
+    // Create a test video stream (colored canvas)
+    function createTestVideoStream(color, userName) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw colored background
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw user name
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(userName, canvas.width / 2, canvas.height / 2);
+      
+      // Animate the canvas
+      let hue = 0;
+      setInterval(() => {
+        hue = (hue + 1) % 360;
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, `hsl(${hue}, 70%, 50%)`);
+        gradient.addColorStop(1, `hsl(${(hue + 60) % 360}, 70%, 50%)`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(userName, canvas.width / 2, canvas.height / 2);
+      }, 50);
+      
+      return canvas.captureStream(30);
+    }
+    
+    // Add a test video feed
+    function addTestVideo() {
+      const userName = testUsers[videoCounter % testUsers.length];
+      const userId = `user-${videoCounter}`;
+      const colors = ['#6f00ff', '#e9b3fb', '#3b0270', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+      const color = colors[videoCounter % colors.length];
+      
+      const stream = createTestVideoStream(color, userName);
+      
+      videoGrid.addVideoFeed(userId, stream, {
+        name: userName,
+        isLocal: videoCounter === 0
+      });
+      
+      videoCounter++;
+      updateInfo();
+      console.log(`✅ Added video feed for ${userName}`);
+    }
+    
+    // Remove a test video feed
+    function removeTestVideo() {
+      const feeds = Array.from(videoGrid.getVideoFeeds().keys());
+      if (feeds.length > 0) {
+        const lastFeed = feeds[feeds.length - 1];
+        videoGrid.removeVideoFeed(lastFeed);
+        videoCounter = Math.max(0, videoCounter - 1);
+        updateInfo();
+        console.log(`✅ Removed video feed: ${lastFeed}`);
+      }
+    }
+    
+    // Clear all videos
+    function clearAllVideos() {
+      videoGrid.clearAll();
+      videoCounter = 0;
+      updateInfo();
+      console.log('✅ Cleared all video feeds');
+    }
+    
+    // Set layout mode
+    function setLayout(mode) {
+      videoGrid.setLayoutMode(mode);
+      
+      // Update button states
+      document.querySelectorAll('.layout-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+      
+      updateInfo();
+      console.log(`✅ Layout mode set to: ${mode}`);
+    }
+    
+    // Test pinning functionality
+    function testPinning() {
+      const feeds = Array.from(videoGrid.getVideoFeeds().keys());
+      if (feeds.length > 0) {
+        const randomFeed = feeds[Math.floor(Math.random() * feeds.length)];
+        videoGrid.togglePinFeed(randomFeed);
+        updateInfo();
+        console.log(`✅ Toggled pin for: ${randomFeed}`);
+      }
+    }
+    
+    // Update info panel
+    function updateInfo() {
+      document.getElementById('currentLayout').textContent = videoGrid.layoutMode;
+      document.getElementById('feedCount').textContent = videoGrid.getVideoFeeds().size;
+      document.getElementById('pinnedCount').textContent = videoGrid.getPinnedFeeds().size;
+      
+      // Check localStorage
+      try {
+        const savedMode = localStorage.getItem('teamup-video-layout-mode');
+        document.getElementById('persistenceStatus').textContent = 
+          savedMode ? `Enabled (saved: ${savedMode})` : 'Enabled (no saved mode)';
+      } catch (e) {
+        document.getElementById('persistenceStatus').textContent = 'Disabled';
+      }
+    }
+    
+    // Initialize on load
+    window.addEventListener('load', () => {
+      initVideoGrid();
+      
+      // Add some initial test videos
+      for (let i = 0; i < 4; i++) {
+        addTestVideo();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen Share Manager Test - TeamUp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .test-panel {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .test-panel h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e0e7ff;
+      color: #667eea;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #c7d2fe;
+    }
+
+    .status-panel {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .status-value {
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .status-value.active {
+      color: #10b981;
+    }
+
+    .status-value.inactive {
+      color: #ef4444;
+    }
+
+    .video-container {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16 / 9;
+      margin-bottom: 20px;
+    }
+
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .video-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #64748b;
+      font-size: 1.2rem;
+    }
+
+    .video-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-panel {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .log-entry {
+      color: #e2e8f0;
+      padding: 4px 0;
+      border-bottom: 1px solid #334155;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-entry.success {
+      color: #10b981;
+    }
+
+    .log-entry.error {
+      color: #ef4444;
+    }
+
+    .log-entry.info {
+      color: #3b82f6;
+    }
+
+    .log-entry.warning {
+      color: #f59e0b;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-desktop"></i> Screen Share Manager Test</h1>
+      <p>Test screen sharing functionality for TeamUp</p>
+    </div>
+
+    <div class="test-panel">
+      <h2><i class="fas fa-play-circle"></i> Screen Share Controls</h2>
+      
+      <div class="controls">
+        <button id="startBtn" class="btn btn-primary">
+          <i class="fas fa-desktop"></i> Start Screen Share
+        </button>
+        <button id="stopBtn" class="btn btn-danger" disabled>
+          <i class="fas fa-stop"></i> Stop Screen Share
+        </button>
+        <button id="statsBtn" class="btn btn-secondary">
+          <i class="fas fa-chart-bar"></i> Show Stats
+        </button>
+        <button id="clearBtn" class="btn btn-secondary">
+          <i class="fas fa-trash"></i> Clear Logs
+        </button>
+      </div>
+
+      <div class="status-panel">
+        <div class="status-item">
+          <span class="status-label">Sharing Status:</span>
+          <span id="sharingStatus" class="status-value inactive">Not Sharing</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Share Type:</span>
+          <span id="shareType" class="status-value">-</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Browser Support:</span>
+          <span id="browserSupport" class="status-value">Checking...</span>
+        </div>
+      </div>
+
+      <div class="video-container" id="videoContainer">
+        <div class="video-placeholder">
+          <i class="fas fa-desktop" style="font-size: 3rem; opacity: 0.3;"></i>
+        </div>
+      </div>
+
+      <div id="statsContainer" style="display: none;">
+        <h3 style="margin-bottom: 15px; color: #333;">Screen Share Statistics</h3>
+        <div class="stats-grid" id="statsGrid"></div>
+      </div>
+    </div>
+
+    <div class="test-panel">
+      <h2><i class="fas fa-terminal"></i> Event Log</h2>
+      <div class="log-panel" id="logPanel"></div>
+    </div>
+  </div>
+
+  <script src="js/screen-share-manager.js"></script>
+  <script>
+    // Mock MediaManager for testing
+    class MockMediaManager {
+      constructor() {
+        this.socket = null;
+        this.app = {
+          state: { currentRoom: 'test-room' },
+          handleScreenShareStarted: (stream) => {
+            log('App notified: Screen share started', 'success');
+          },
+          handleScreenShareStopped: () => {
+            log('App notified: Screen share stopped', 'success');
+          }
+        };
+      }
+    }
+
+    // Initialize
+    const mockMediaManager = new MockMediaManager();
+    const screenShareManager = new ScreenShareManager(mockMediaManager);
+    
+    // UI Elements
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statsBtn = document.getElementById('statsBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const sharingStatus = document.getElementById('sharingStatus');
+    const shareType = document.getElementById('shareType');
+    const browserSupport = document.getElementById('browserSupport');
+    const videoContainer = document.getElementById('videoContainer');
+    const logPanel = document.getElementById('logPanel');
+    const statsContainer = document.getElementById('statsContainer');
+    const statsGrid = document.getElementById('statsGrid');
+
+    // Check browser support
+    function checkBrowserSupport() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        browserSupport.textContent = 'Supported ✓';
+        browserSupport.classList.add('active');
+        log('Browser supports screen sharing', 'success');
+      } else {
+        browserSupport.textContent = 'Not Supported ✗';
+        browserSupport.classList.add('inactive');
+        log('Browser does not support screen sharing', 'error');
+        startBtn.disabled = true;
+      }
+    }
+
+    // Logging function
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logPanel.appendChild(entry);
+      logPanel.scrollTop = logPanel.scrollHeight;
+      
+      // Also log to console
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    // Update UI state
+    function updateUI() {
+      const isSharing = screenShareManager.isSharingScreen();
+      
+      startBtn.disabled = isSharing;
+      stopBtn.disabled = !isSharing;
+      
+      if (isSharing) {
+        sharingStatus.textContent = 'Sharing';
+        sharingStatus.classList.remove('inactive');
+        sharingStatus.classList.add('active');
+        shareType.textContent = screenShareManager.getShareType() || 'Unknown';
+      } else {
+        sharingStatus.textContent = 'Not Sharing';
+        sharingStatus.classList.remove('active');
+        sharingStatus.classList.add('inactive');
+        shareType.textContent = '-';
+      }
+    }
+
+    // Display video stream
+    function displayStream(stream) {
+      // Remove placeholder
+      videoContainer.innerHTML = '';
+      
+      // Create video element
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.muted = true;
+      video.srcObject = stream;
+      
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'video-overlay';
+      overlay.innerHTML = `
+        <i class="fas fa-desktop"></i>
+        <span>Screen Share Active</span>
+      `;
+      
+      videoContainer.appendChild(video);
+      videoContainer.appendChild(overlay);
+      
+      log('Video stream displayed', 'success');
+    }
+
+    // Remove video stream
+    function removeStream() {
+      videoContainer.innerHTML = `
+        <div class="video-placeholder">
+          <i class="fas fa-desktop" style="font-size: 3rem; opacity: 0.3;"></i>
+        </div>
+      `;
+      log('Video stream removed', 'info');
+    }
+
+    // Show statistics
+    function showStats() {
+      const stats = screenShareManager.getShareStats();
+      
+      if (!stats) {
+        log('No statistics available - screen share not active', 'warning');
+        statsContainer.style.display = 'none';
+        return;
+      }
+      
+      statsGrid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Resolution</div>
+          <div class="stat-value">${stats.width}x${stats.height}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Frame Rate</div>
+          <div class="stat-value">${stats.frameRate} fps</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Share Type</div>
+          <div class="stat-value">${stats.shareType}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Aspect Ratio</div>
+          <div class="stat-value">${stats.aspectRatio?.toFixed(2) || 'N/A'}</div>
+        </div>
+      `;
+      
+      statsContainer.style.display = 'block';
+      log('Statistics displayed', 'info');
+    }
+
+    // Event Handlers
+    startBtn.addEventListener('click', async () => {
+      try {
+        log('Starting screen share...', 'info');
+        const stream = await screenShareManager.startSharing();
+        log('Screen share started successfully', 'success');
+        displayStream(stream);
+        updateUI();
+      } catch (error) {
+        if (error.message === 'Screen share cancelled') {
+          log('Screen share cancelled by user', 'warning');
+        } else {
+          log(`Failed to start screen share: ${error.message}`, 'error');
+        }
+        updateUI();
+      }
+    });
+
+    stopBtn.addEventListener('click', async () => {
+      try {
+        log('Stopping screen share...', 'info');
+        await screenShareManager.stopSharing();
+        log('Screen share stopped successfully', 'success');
+        removeStream();
+        updateUI();
+        statsContainer.style.display = 'none';
+      } catch (error) {
+        log(`Failed to stop screen share: ${error.message}`, 'error');
+      }
+    });
+
+    statsBtn.addEventListener('click', () => {
+      showStats();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      logPanel.innerHTML = '';
+      log('Logs cleared', 'info');
+    });
+
+    // Initialize
+    checkBrowserSupport();
+    updateUI();
+    log('Screen Share Manager Test initialized', 'success');
+    log('Click "Start Screen Share" to begin testing', 'info');
+  </script>
+</body>
+</html>

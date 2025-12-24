@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Feed UI Test - TeamUp</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/video-feed.css">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #3b0270 0%, #6f00ff 50%, #e9b3fb 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 3rem;
+    }
+
+    .test-header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .test-header p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+    }
+
+    .demo-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 2rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .demo-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .demo-section h2 i {
+      color: #6f00ff;
+    }
+
+    .video-grid-demo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .control-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .control-group {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+
+    .control-group h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .control-btn {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, #6f00ff, #3b0270);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .control-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(111, 0, 255, 0.3);
+    }
+
+    .control-btn:active {
+      transform: translateY(0);
+    }
+
+    .control-btn.secondary {
+      background: #6b7280;
+    }
+
+    .control-btn.danger {
+      background: #ef4444;
+    }
+
+    .control-btn.success {
+      background: #22c55e;
+    }
+
+    .status-display {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.875rem;
+    }
+
+    .status-value {
+      font-weight: 500;
+      color: #6b7280;
+      padding: 0.25rem 0.75rem;
+      background: white;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+      font-size: 0.875rem;
+    }
+
+    .status-value.active {
+      background: #6f00ff;
+      color: white;
+      border-color: #6f00ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>📹 Video Feed UI</h1>
+      <p>Interactive test for individual video feed components</p>
+    </div>
+
+    <div class="demo-section">
+      <h2><i class="fas fa-video"></i> Video Feed Examples</h2>
+      <div class="video-grid-demo" id="videoGrid">
+        <!-- Video feeds will be added here -->
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2><i class="fas fa-gamepad"></i> Controls</h2>
+      <div class="control-panel">
+        <div class="control-group">
+          <h3>Feed 1 (You)</h3>
+          <button class="control-btn" onclick="toggleVideo(0)">Toggle Video</button>
+          <button class="control-btn secondary" onclick="toggleSpeaking(0)">Toggle Speaking</button>
+          <button class="control-btn" onclick="togglePin(0)">Toggle Pin</button>
+          <button class="control-btn" onclick="cycleQuality(0)">Cycle Quality</button>
+        </div>
+
+        <div class="control-group">
+          <h3>Feed 2 (Alice)</h3>
+          <button class="control-btn" onclick="toggleVideo(1)">Toggle Video</button>
+          <button class="control-btn secondary" onclick="toggleSpeaking(1)">Toggle Speaking</button>
+          <button class="control-btn" onclick="togglePin(1)">Toggle Pin</button>
+          <button class="control-btn success" onclick="setScreenShare(1)">Set Screen Share</button>
+        </div>
+
+        <div class="control-group">
+          <h3>Feed 3 (Bob)</h3>
+          <button class="control-btn" onclick="toggleVideo(2)">Toggle Video</button>
+          <button class="control-btn secondary" onclick="toggleSpeaking(2)">Toggle Speaking</button>
+          <button class="control-btn" onclick="togglePin(2)">Toggle Pin</button>
+          <button class="control-btn danger" onclick="setAdminDisabled(2)">Admin Disable</button>
+        </div>
+
+        <div class="control-group">
+          <h3>Feed 4 (Charlie)</h3>
+          <button class="control-btn" onclick="toggleVideo(3)">Toggle Video</button>
+          <button class="control-btn secondary" onclick="toggleSpeaking(3)">Toggle Speaking</button>
+          <button class="control-btn" onclick="togglePin(3)">Toggle Pin</button>
+          <button class="control-btn" onclick="showLoading(3)">Show Loading</button>
+        </div>
+      </div>
+
+      <div class="status-display">
+        <h3 style="margin-bottom: 1rem; color: #374151;">Feed Status</h3>
+        <div class="status-item">
+          <span class="status-label">Total Feeds</span>
+          <span class="status-value" id="totalFeeds">4</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Pinned Feeds</span>
+          <span class="status-value" id="pinnedFeeds">0</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Speaking</span>
+          <span class="status-value" id="speakingFeeds">0</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Video Enabled</span>
+          <span class="status-value" id="videoEnabled">4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./js/video-feed-ui.js"></script>
+  
+  <script>
+    // Test data
+    const testUsers = [
+      { id: 'user1', name: 'You', isLocal: true },
+      { id: 'user2', name: 'Alice Johnson', isLocal: false },
+      { id: 'user3', name: 'Bob Smith', isLocal: false },
+      { id: 'user4', name: 'Charlie Brown', isLocal: false }
+    ];
+
+    let videoFeeds = [];
+    const qualities = ['excellent', 'good', 'fair', 'poor'];
+
+    // Initialize video feeds
+    function initializeFeeds() {
+      const grid = document.getElementById('videoGrid');
+      
+      testUsers.forEach((user, index) => {
+        const feed = new VideoFeedUI(user.id, user.name, user.isLocal);
+        const container = feed.create();
+        
+        // Set up event handlers
+        feed.onPinClick = (userId, pinned) => {
+          console.log(`Pin clicked for ${userId}: ${pinned}`);
+          feed.setPinned(pinned);
+          updateStatus();
+        };
+        
+        feed.onFullscreenClick = (userId) => {
+          console.log(`Fullscreen clicked for ${userId}`);
+        };
+        
+        // Add to grid
+        grid.appendChild(container);
+        videoFeeds.push(feed);
+        
+        // Simulate video stream with a colored background
+        setTimeout(() => {
+          simulateVideoStream(feed, index);
+        }, 500);
+      });
+      
+      updateStatus();
+      console.log('✅ Video feeds initialized');
+    }
+
+    // Simulate video stream
+    function simulateVideoStream(feed, index) {
+      const colors = ['#6f00ff', '#3b82f6', '#22c55e', '#f59e0b'];
+      const video = feed.getVideoElement();
+      
+      if (video) {
+        // Create a canvas to simulate video
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw colored background
+        ctx.fillStyle = colors[index % colors.length];
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw user name
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(feed.userName, canvas.width / 2, canvas.height / 2);
+        
+        // Convert to stream
+        const stream = canvas.captureStream(30);
+        feed.setStream(stream);
+      }
+    }
+
+    // Control functions
+    function toggleVideo(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      if (feed.videoEnabled) {
+        feed.removeStream();
+      } else {
+        simulateVideoStream(feed, index);
+      }
+      
+      updateStatus();
+    }
+
+    function toggleSpeaking(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      feed.setSpeaking(!feed.isSpeaking);
+      updateStatus();
+    }
+
+    function togglePin(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      feed.setPinned(!feed.isPinned);
+      updateStatus();
+    }
+
+    function cycleQuality(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      const currentIndex = qualities.indexOf(feed.connectionQuality);
+      const nextIndex = (currentIndex + 1) % qualities.length;
+      feed.setConnectionQuality(qualities[nextIndex]);
+    }
+
+    function setScreenShare(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      feed.setScreenShare(!feed.isScreenShare);
+    }
+
+    function setAdminDisabled(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      feed.setAdminDisabled(!feed.isAdminDisabled);
+    }
+
+    function showLoading(index) {
+      const feed = videoFeeds[index];
+      if (!feed) return;
+      
+      feed.showLoading();
+      setTimeout(() => feed.hideLoading(), 2000);
+    }
+
+    // Update status display
+    function updateStatus() {
+      const totalFeeds = videoFeeds.length;
+      const pinnedFeeds = videoFeeds.filter(f => f.isPinned).length;
+      const speakingFeeds = videoFeeds.filter(f => f.isSpeaking).length;
+      const videoEnabled = videoFeeds.filter(f => f.videoEnabled).length;
+      
+      document.getElementById('totalFeeds').textContent = totalFeeds;
+      document.getElementById('pinnedFeeds').textContent = pinnedFeeds;
+      document.getElementById('speakingFeeds').textContent = speakingFeeds;
+      document.getElementById('videoEnabled').textContent = videoEnabled;
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Initializing Video Feed UI Test...');
+      initializeFeeds();
+    });
+  </script>
+</body>
+</html>

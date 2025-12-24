@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VideoGridLayout Test</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+    }
+    
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .test-header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .test-header h1 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    
+    .test-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    
+    .test-btn {
+      padding: 10px 20px;
+      background: #6f00ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .test-btn:hover {
+      background: #5500cc;
+      transform: translateY(-2px);
+    }
+    
+    .test-btn.secondary {
+      background: #ef4444;
+    }
+    
+    .test-btn.secondary:hover {
+      background: #dc2626;
+    }
+    
+    .layout-selector {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .layout-btn {
+      padding: 8px 16px;
+      background: #f3f4f6;
+      color: #333;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .layout-btn:hover {
+      background: #e5e7eb;
+    }
+    
+    .layout-btn.active {
+      background: #6f00ff;
+      color: white;
+      border-color: #6f00ff;
+    }
+    
+    .video-container {
+      width: 100%;
+      height: 600px;
+      background: #0a0a0a;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .stats {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    
+    .stats h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>📹 VideoGridLayout Test</h1>
+      <p>Test the VideoGridLayout class with simulated video feeds</p>
+      
+      <div class="test-controls">
+        <button class="test-btn" onclick="addVideoFeed()">
+          <i class="fas fa-plus"></i> Add Video Feed
+        </button>
+        <button class="test-btn secondary" onclick="removeVideoFeed()">
+          <i class="fas fa-minus"></i> Remove Video Feed
+        </button>
+        <button class="test-btn" onclick="addMultipleFeeds()">
+          <i class="fas fa-users"></i> Add 5 Feeds
+        </button>
+        <button class="test-btn secondary" onclick="clearAllFeeds()">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+      </div>
+      
+      <div class="layout-selector">
+        <strong>Layout Mode:</strong>
+        <button class="layout-btn active" data-mode="grid" onclick="setLayoutMode('grid')">
+          <i class="fas fa-th"></i> Grid
+        </button>
+        <button class="layout-btn" data-mode="speaker" onclick="setLayoutMode('speaker')">
+          <i class="fas fa-user"></i> Speaker
+        </button>
+        <button class="layout-btn" data-mode="sidebar" onclick="setLayoutMode('sidebar')">
+          <i class="fas fa-columns"></i> Sidebar
+        </button>
+        <button class="layout-btn" data-mode="pip" onclick="setLayoutMode('pip')">
+          <i class="fas fa-window-restore"></i> PIP
+        </button>
+      </div>
+    </div>
+    
+    <div id="videoContainer" class="video-container"></div>
+    
+    <div class="stats">
+      <h3>📊 Statistics</h3>
+      <div class="stat-item">
+        <span>Total Video Feeds:</span>
+        <strong id="totalFeeds">0</strong>
+      </div>
+      <div class="stat-item">
+        <span>Pinned Feeds:</span>
+        <strong id="pinnedFeeds">0</strong>
+      </div>
+      <div class="stat-item">
+        <span>Current Layout:</span>
+        <strong id="currentLayout">grid</strong>
+      </div>
+    </div>
+  </div>
+  
+  <script src="./js/video-grid-layout.js"></script>
+  <script>
+    let videoGrid;
+    let userCounter = 0;
+    const userIds = [];
+    
+    // Initialize VideoGridLayout
+    function initVideoGrid() {
+      const container = document.getElementById('videoContainer');
+      videoGrid = new VideoGridLayout(container);
+      console.log('✅ VideoGridLayout initialized');
+      updateStats();
+    }
+    
+    // Create a simulated video stream
+    function createSimulatedStream() {
+      // Create a canvas element to simulate video
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw a random color background
+      const colors = ['#6f00ff', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#ec4899'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw some text
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`User ${userCounter}`, canvas.width / 2, canvas.height / 2);
+      
+      // Animate the canvas
+      let frame = 0;
+      setInterval(() => {
+        frame++;
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`User ${userCounter}`, canvas.width / 2, canvas.height / 2);
+        ctx.font = '24px Arial';
+        ctx.fillText(`Frame: ${frame}`, canvas.width / 2, canvas.height / 2 + 60);
+      }, 1000);
+      
+      // Get stream from canvas
+      return canvas.captureStream(30);
+    }
+    
+    // Add a video feed
+    function addVideoFeed() {
+      userCounter++;
+      const userId = `user-${userCounter}`;
+      const stream = createSimulatedStream();
+      const metadata = {
+        name: `User ${userCounter}`,
+        isLocal: userCounter === 1
+      };
+      
+      videoGrid.addVideoFeed(userId, stream, metadata);
+      userIds.push(userId);
+      updateStats();
+      
+      console.log(`✅ Added video feed for ${userId}`);
+    }
+    
+    // Remove a video feed
+    function removeVideoFeed() {
+      if (userIds.length === 0) {
+        alert('No video feeds to remove');
+        return;
+      }
+      
+      const userId = userIds.pop();
+      videoGrid.removeVideoFeed(userId);
+      updateStats();
+      
+      console.log(`✅ Removed video feed for ${userId}`);
+    }
+    
+    // Add multiple feeds
+    function addMultipleFeeds() {
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => addVideoFeed(), i * 200);
+      }
+    }
+    
+    // Clear all feeds
+    function clearAllFeeds() {
+      if (confirm('Clear all video feeds?')) {
+        videoGrid.clearAll();
+        userIds.length = 0;
+        userCounter = 0;
+        updateStats();
+        console.log('✅ Cleared all video feeds');
+      }
+    }
+    
+    // Set layout mode
+    function setLayoutMode(mode) {
+      videoGrid.setLayoutMode(mode);
+      
+      // Update button states
+      document.querySelectorAll('.layout-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.mode === mode) {
+          btn.classList.add('active');
+        }
+      });
+      
+      updateStats();
+      console.log(`✅ Layout mode set to: ${mode}`);
+    }
+    
+    // Update statistics
+    function updateStats() {
+      document.getElementById('totalFeeds').textContent = videoGrid.getVideoFeeds().size;
+      document.getElementById('pinnedFeeds').textContent = videoGrid.getPinnedFeeds().size;
+      document.getElementById('currentLayout').textContent = videoGrid.layoutMode;
+    }
+    
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initVideoGrid();
+      console.log('✅ Test page loaded');
+    });
+  </script>
+</body>
+</html>
