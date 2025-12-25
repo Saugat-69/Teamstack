@@ -1345,12 +1345,15 @@ body::before {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  background: var(--gray-50);
+  background: rgba(255, 255, 255, 0.1);
+  /* Translucent glass instead of white */
   border-radius: var(--radius-2xl);
   font-size: var(--text-sm);
   font-weight: 500;
   transition: var(--transition-all);
-  border: 1px solid var(--gray-200);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  /* Ensure text is visible */
 }
 
 .user-item:hover {

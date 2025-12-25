@@ -2003,6 +2003,20 @@ class TeamUpApp {
     // Update user list to show camera status
     this.updateUserVideoStatus(userId, false, byAdmin);
 
+    // Remove their video feed from the grid
+    if (this.videoGrid) {
+      this.videoGrid.removeVideoFeed(userId);
+      console.log(`✅ Removed video feed for ${name} (${userId})`);
+
+      // Hide video grid if no feeds remain (only local preview)
+      if (this.videoGrid.videoFeeds.size === 0 ||
+        (this.videoGrid.videoFeeds.size === 1 && this.videoGrid.videoFeeds.has('local'))) {
+        if (this.elements.videoGridContainer) {
+          this.elements.videoGridContainer.style.display = 'none';
+        }
+      }
+    }
+
     // Add to activity feed
     if (byAdmin) {
       this.addRoomActivity(`${name}'s camera disabled by admin`, 'warning');

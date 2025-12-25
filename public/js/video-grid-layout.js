@@ -568,6 +568,18 @@ class VideoGridLayout {
    * @param {Object} layout - Layout configuration
    */
   applyGridLayout(layout) {
+    // Reset PIP-specific styles if coming from PIP mode
+    this.gridWrapper.style.position = 'static';
+    this.gridWrapper.style.left = '';
+    this.gridWrapper.style.top = '';
+    this.gridWrapper.style.right = '';
+    this.gridWrapper.style.bottom = '';
+    this.gridWrapper.style.zIndex = '';
+    this.gridWrapper.style.cursor = '';
+    this.gridWrapper.style.boxShadow = '';
+    this.gridWrapper.style.borderRadius = '';
+    this.gridWrapper.style.overflow = '';
+
     // Set grid wrapper styles
     this.gridWrapper.style.display = 'grid';
     this.gridWrapper.style.gridTemplateColumns = `repeat(${layout.columns}, 1fr)`;
@@ -577,9 +589,10 @@ class VideoGridLayout {
     this.gridWrapper.style.height = '100%';
     this.gridWrapper.style.padding = '8px';
 
-    // Apply to each video feed
+    // Apply to each video feed and ensure they're visible
     this.videoFeeds.forEach((feedData, userId) => {
       const feed = feedData.element;
+      feed.style.display = 'block'; // Ensure visible (reset from PIP)
       feed.style.width = '100%';
       feed.style.height = '100%';
       feed.style.position = 'relative';
@@ -602,6 +615,20 @@ class VideoGridLayout {
    * @param {Object} layout - Layout configuration
    */
   applySpeakerLayout(layout) {
+    // Reset PIP-specific styles if coming from PIP mode
+    this.gridWrapper.style.position = 'static';
+    this.gridWrapper.style.left = '';
+    this.gridWrapper.style.top = '';
+    this.gridWrapper.style.right = '';
+    this.gridWrapper.style.bottom = '';
+    this.gridWrapper.style.zIndex = '';
+    this.gridWrapper.style.cursor = '';
+    this.gridWrapper.style.boxShadow = '';
+    this.gridWrapper.style.borderRadius = '';
+    this.gridWrapper.style.overflow = '';
+    this.gridWrapper.style.width = '100%';
+    this.gridWrapper.style.height = '100%';
+
     // Set grid wrapper to flex layout
     this.gridWrapper.style.display = 'flex';
     this.gridWrapper.style.flexDirection = 'column';
@@ -685,6 +712,20 @@ class VideoGridLayout {
    * @param {Object} layout - Layout configuration
    */
   applySidebarLayout(layout) {
+    // Reset PIP-specific styles if coming from PIP mode
+    this.gridWrapper.style.position = 'static';
+    this.gridWrapper.style.left = '';
+    this.gridWrapper.style.top = '';
+    this.gridWrapper.style.right = '';
+    this.gridWrapper.style.bottom = '';
+    this.gridWrapper.style.zIndex = '';
+    this.gridWrapper.style.cursor = '';
+    this.gridWrapper.style.boxShadow = '';
+    this.gridWrapper.style.borderRadius = '';
+    this.gridWrapper.style.overflow = '';
+    this.gridWrapper.style.width = '100%';
+    this.gridWrapper.style.height = '100%';
+
     // Set grid wrapper to flex layout
     this.gridWrapper.style.display = 'flex';
     this.gridWrapper.style.flexDirection = 'row';
